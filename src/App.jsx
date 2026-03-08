@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { loadProfile, saveProfile } from "./firebase";
 
-// ===== KIDS HABITS (13 items, 43 XP max) =====
-const KIDS_HABITS = [
+var KIDS_HABITS = [
   { id: "sleep_hours", cat: "sleep", label: "Ngủ đủ giờ", emoji: "🌙", xp: 10, desc_bong: "≥9h", desc_beo: "≥9.5h" },
   { id: "bedtime", cat: "sleep", label: "Lên giường đúng giờ", emoji: "🛏️", xp: 2, desc_bong: "<21:30", desc_beo: "<21:00" },
   { id: "breakfast", cat: "food", label: "Bữa sáng đủ", emoji: "🍳", xp: 5 },
@@ -17,8 +16,7 @@ const KIDS_HABITS = [
   { id: "family_talk", cat: "mind", label: "Trò chuyện gia đình", emoji: "💬", xp: 2 },
 ];
 
-// ===== TRUONG HABITS (17 items) =====
-const TRUONG_HABITS = [
+var ADULT_HABITS = [
   { id: "t_meal", cat: "food", label: "Bữa ăn chuẩn", emoji: "🥗", xp: 5, desc: "Rau+protein+tinh bột+béo+quả (x2=10đ)" },
   { id: "t_no_sugar", cat: "food", label: "Không ăn đường", emoji: "🚫", xp: 3 },
   { id: "t_water", cat: "food", label: "Uống đủ nước ≥2L", emoji: "💧", xp: 3 },
@@ -38,73 +36,52 @@ const TRUONG_HABITS = [
   { id: "t_journal", cat: "learn", label: "Ghi chép cuối ngày", emoji: "📝", xp: 2 },
 ];
 
-const KIDS_CATEGORIES = {
-  sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" },
-  food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" },
-  move: { name: "Vận động", color: "#4ECB71", icon: "⚡" },
-  mind: { name: "Tinh thần", color: "#FFB347", icon: "✨" },
-};
+var KIDS_CATS = { sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, move: { name: "Vận động", color: "#4ECB71", icon: "⚡" }, mind: { name: "Tinh thần", color: "#FFB347", icon: "✨" } };
+var ADULT_CATS = { food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, mind: { name: "Tinh thần", color: "#FFB347", icon: "🧘" }, move: { name: "Vận động", color: "#4ECB71", icon: "💪" }, learn: { name: "Học tập", color: "#3498DB", icon: "📚" } };
 
-const TRUONG_CATEGORIES = {
-  food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" },
-  sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" },
-  mind: { name: "Tinh thần", color: "#FFB347", icon: "🧘" },
-  move: { name: "Vận động", color: "#4ECB71", icon: "💪" },
-  learn: { name: "Học tập", color: "#3498DB", icon: "📚" },
-};
-
-const LEVELS = [
-  { name: "Mầm non", minXp: 0, icon: "🌱" },
-  { name: "Hạt giống", minXp: 100, icon: "🫘" },
-  { name: "Cây mầm", minXp: 250, icon: "🌿" },
-  { name: "Nở hoa", minXp: 500, icon: "🌸" },
-  { name: "Cây khỏe", minXp: 800, icon: "🌳" },
-  { name: "Chiến binh", minXp: 1000, icon: "⚔️" },
-  { name: "Dũng sĩ", minXp: 1500, icon: "🗡️" },
-  { name: "Hiệp sĩ", minXp: 2000, icon: "🛡️" },
-  { name: "Đội trưởng", minXp: 3000, icon: "🎖️" },
-  { name: "Anh hùng", minXp: 5000, icon: "🦸" },
-  { name: "Siêu sao", minXp: 7000, icon: "⭐" },
-  { name: "Bậc thầy", minXp: 9000, icon: "🎓" },
-  { name: "Đại sư", minXp: 11000, icon: "🥋" },
-  { name: "Chiến thần", minXp: 13000, icon: "🔱" },
-  { name: "Huyền thoại", minXp: 15000, icon: "👑" },
-  { name: "Thần thoại", minXp: 20000, icon: "🔥" },
-  { name: "Bất tử", minXp: 25000, icon: "💎" },
-  { name: "Thiên thần", minXp: 30000, icon: "😇" },
-  { name: "Thượng đế", minXp: 35000, icon: "🌟" },
-  { name: "Vũ trụ", minXp: 40000, icon: "🌌" },
+var LEVELS = [
+  { name: "Mầm non", minXp: 0, icon: "🌱" }, { name: "Hạt giống", minXp: 100, icon: "🫘" },
+  { name: "Cây mầm", minXp: 250, icon: "🌿" }, { name: "Nở hoa", minXp: 500, icon: "🌸" },
+  { name: "Cây khỏe", minXp: 800, icon: "🌳" }, { name: "Chiến binh", minXp: 1000, icon: "⚔️" },
+  { name: "Dũng sĩ", minXp: 1500, icon: "🗡️" }, { name: "Hiệp sĩ", minXp: 2000, icon: "🛡️" },
+  { name: "Đội trưởng", minXp: 3000, icon: "🎖️" }, { name: "Anh hùng", minXp: 5000, icon: "🦸" },
+  { name: "Siêu sao", minXp: 7000, icon: "⭐" }, { name: "Bậc thầy", minXp: 9000, icon: "🎓" },
+  { name: "Đại sư", minXp: 11000, icon: "🥋" }, { name: "Chiến thần", minXp: 13000, icon: "🔱" },
+  { name: "Huyền thoại", minXp: 15000, icon: "👑" }, { name: "Thần thoại", minXp: 20000, icon: "🔥" },
+  { name: "Bất tử", minXp: 25000, icon: "💎" }, { name: "Thiên thần", minXp: 30000, icon: "😇" },
+  { name: "Thượng đế", minXp: 35000, icon: "🌟" }, { name: "Vũ trụ", minXp: 40000, icon: "🌌" },
 ];
 
-const PHASES = [
+var PHASES = [
   { id: 1, name: "Khởi động", months: "T3-T4", target: 25, focus: ["sleep"] },
   { id: 2, name: "Tập luyện", months: "T5-T7", target: 30, focus: ["sleep", "food"] },
   { id: 3, name: "Chuyển giao", months: "T8-T10", target: 35, focus: ["sleep", "food", "move"] },
   { id: 4, name: "Tự chủ", months: "T11-T12", target: 35, focus: ["sleep", "food", "move", "mind"] },
 ];
 
-const PROFILES = {
-  truong: { name: "Bố Trường", avatar: "🦁", theme: "#2C3E50", themeLight: "#F0F3F5", role: "Thủ lĩnh gia đình", isKid: false },
+var PROFILES = {
+  truong: { name: "Ba Trường", avatar: "🦁", theme: "#2C3E50", themeLight: "#F0F3F5", role: "Thủ lĩnh gia đình", isKid: false },
+  maichi: { name: "Mẹ Mai Chi", avatar: "🌷", theme: "#E91E63", themeLight: "#FCE4EC", role: "Nữ tướng gia đình", isKid: false },
   bong: { name: "Bông", avatar: "🌸", theme: "#FF69B4", themeLight: "#FFF0F5", role: "Nữ chiến binh hoa", isKid: true },
   beo: { name: "Beo", avatar: "🐯", theme: "#FF8C00", themeLight: "#FFF8F0", role: "Chiến binh hổ", isKid: true },
 };
 
-const ACHIEVEMENTS = [
-  { id: "first_day", name: "Ngày đầu tiên", icon: "🎯", desc: "Hoàn thành ngày đầu", condition: function(s) { return s.totalDays >= 1; } },
-  { id: "streak_7", name: "7 ngày lửa", icon: "🔥", desc: "Streak 7 ngày", condition: function(s) { return s.streak >= 7; } },
-  { id: "streak_30", name: "30 ngày bền bỉ", icon: "☄️", desc: "Streak 30 ngày", condition: function(s) { return s.streak >= 30; } },
-  { id: "streak_100", name: "100 ngày huyền thoại", icon: "💫", desc: "Streak 100 ngày", condition: function(s) { return s.streak >= 100; } },
-  { id: "perfect_day", name: "Ngày hoàn hảo", icon: "💯", desc: "Full điểm trong ngày", condition: function(s) { return s.perfectDays >= 1; } },
-  { id: "xp_500", name: "500 XP", icon: "🌟", desc: "Tích lũy 500 XP", condition: function(s) { return s.totalXp >= 500; } },
-  { id: "xp_1000", name: "1000 XP", icon: "⭐", desc: "Tích lũy 1000 XP", condition: function(s) { return s.totalXp >= 1000; } },
-  { id: "xp_5000", name: "5000 XP", icon: "🏆", desc: "Tích lũy 5000 XP", condition: function(s) { return s.totalXp >= 5000; } },
-  { id: "bookworm", name: "Mọt sách", icon: "📚", desc: "Đọc sách 14 ngày liên tiếp", condition: function(s) { return s.readStreak >= 14; } },
-  { id: "sugar_free_7", name: "Không đường 7 ngày", icon: "🍃", desc: "Không đường 7 ngày liên tiếp", condition: function(s) { return s.sugarFreeStreak >= 7; } },
-  { id: "sleep_master", name: "Vua giấc ngủ", icon: "😴", desc: "Ngủ đủ 14 ngày liên tiếp", condition: function(s) { return s.sleepStreak >= 14; } },
-  { id: "exercise_hero", name: "Vận động viên", icon: "🏅", desc: "Vận động 14 ngày liên tiếp", condition: function(s) { return s.exerciseStreak >= 14; } },
+var ACHIEVEMENTS = [
+  { id: "first_day", name: "Ngày đầu tiên", icon: "🎯", desc: "Hoàn thành ngày đầu", cond: function(s){return s.totalDays>=1;} },
+  { id: "streak_7", name: "7 ngày lửa", icon: "🔥", desc: "Streak 7 ngày", cond: function(s){return s.streak>=7;} },
+  { id: "streak_30", name: "30 ngày bền bỉ", icon: "☄️", desc: "Streak 30 ngày", cond: function(s){return s.streak>=30;} },
+  { id: "streak_100", name: "100 ngày huyền thoại", icon: "💫", desc: "Streak 100 ngày", cond: function(s){return s.streak>=100;} },
+  { id: "perfect_day", name: "Ngày hoàn hảo", icon: "💯", desc: "Full điểm", cond: function(s){return s.perfectDays>=1;} },
+  { id: "xp_500", name: "500 XP", icon: "🌟", desc: "Tích lũy 500 XP", cond: function(s){return s.totalXp>=500;} },
+  { id: "xp_1000", name: "1000 XP", icon: "⭐", desc: "Tích lũy 1000 XP", cond: function(s){return s.totalXp>=1000;} },
+  { id: "xp_5000", name: "5000 XP", icon: "🏆", desc: "Tích lũy 5000 XP", cond: function(s){return s.totalXp>=5000;} },
+  { id: "bookworm", name: "Mọt sách", icon: "📚", desc: "Đọc sách 14 ngày", cond: function(s){return s.readStreak>=14;} },
+  { id: "sugar_free_7", name: "Không đường 7 ngày", icon: "🍃", desc: "7 ngày liên tiếp", cond: function(s){return s.sugarFreeStreak>=7;} },
+  { id: "sleep_master", name: "Vua giấc ngủ", icon: "😴", desc: "Ngủ đủ 14 ngày", cond: function(s){return s.sleepStreak>=14;} },
+  { id: "exercise_hero", name: "Vận động viên", icon: "🏅", desc: "14 ngày liên tiếp", cond: function(s){return s.exerciseStreak>=14;} },
 ];
 
-const TREASURES = [
+var TREASURES = [
   { id: "ice_cream", name: "Kem đặc biệt", icon: "🍦", stickers: 3 },
   { id: "choose_book", name: "Chọn truyện mới", icon: "📖", stickers: 5 },
   { id: "choose_food", name: "Chọn món ăn tối", icon: "🍕", stickers: 5 },
@@ -113,7 +90,7 @@ const TREASURES = [
   { id: "toy_small", name: "Đồ chơi nhỏ", icon: "🎁", stickers: 15 },
 ];
 
-const TIME_CATS = [
+var TIME_CATS = [
   { id: "health", name: "Sức khỏe", icon: "💪", color: "#27AE60" },
   { id: "family", name: "Gia đình", icon: "👨‍👩‍👧‍👦", color: "#E74C3C" },
   { id: "cssk", name: "Học CSSK", icon: "🎓", color: "#F39C12" },
@@ -129,578 +106,195 @@ const TIME_CATS = [
   { id: "other", name: "Khác", icon: "⚡", color: "#BDC3C7" },
 ];
 
+var GOALS = [
+  { id: "g1", name: "Sức khỏe tuyệt vời", icon: "❤️", target: 100, unit: "%", step: 1, color: "#E74C3C", desc: "Chỉ số tốt hơn 10% so với mức chuẩn" },
+  { id: "g2", name: "2,000km đạp xe", icon: "🚴", target: 2000, unit: "km", step: 1, color: "#27AE60", desc: "Hoàn thành chặng đua lũy kế cả năm" },
+  { id: "g3", name: "2 Chứng chỉ CSSK quốc tế", icon: "🎓", target: 2, unit: "CC", step: 1, color: "#F39C12", desc: "Chứng chỉ uy tín quốc tế" },
+  { id: "g4", name: "Con trưởng thành chủ động", icon: "👧", target: 2.0, unit: "hành vi/ngày", step: 0.1, color: "#FF69B4", desc: "≥2 hành vi chủ động/ngày không cần nhắc" },
+  { id: "g5", name: "3 chuyên gia CSSK hàng đầu", icon: "🤝", target: 3, unit: "người", step: 1, color: "#9B59B6", desc: "Mối quan hệ chất lượng" },
+  { id: "g6", name: "Hướng đi CSSK chủ động", icon: "🧭", target: 100, unit: "%", step: 5, color: "#3498DB", desc: "Quyết định rõ ràng hết tháng 7" },
+  { id: "g7", name: "Tài sản +5 tỷ", icon: "💰", target: 5000, unit: "triệu", step: 100, color: "#F1C40F", desc: "Tăng trưởng hướng đến tự do tài chính" },
+  { id: "g8", name: "ILP đột phá 300 đăng ký", icon: "⭐", target: 300, unit: "người", step: 1, color: "#E67E22", desc: "Chương trình ILP tuyệt vời" },
+  { id: "g9", name: "Di sản Long Hiền — CĐS", icon: "🏢", target: 100, unit: "%", step: 5, color: "#2C3E50", desc: "Chuyển đổi số thành công 100%" },
+  { id: "g10", name: "Xuyên Việt gia đình", icon: "🏍️", target: 100, unit: "%", step: 10, color: "#1ABC9C", desc: "Cả gia đình tự do kết nối" },
+];
+
+var REVIEW_QUESTIONS = [
+  { id: "rq1", label: "Km đạp xe tuần này?", type: "number", unit: "km", icon: "🚴" },
+  { id: "rq2", label: "Giờ CSSK tuần này?", type: "number", unit: "giờ", icon: "🎓" },
+  { id: "rq3", label: "Thói quen con: TB/ngày?", type: "number", unit: "điểm", icon: "👧" },
+  { id: "rq4", label: "10 mục tiêu: tiến / đứng yên?", type: "text", icon: "🎯" },
+  { id: "rq5", label: "Tuần tới, 1 việc quan trọng nhất?", type: "text", icon: "⭐" },
+  { id: "rq6", label: "Điểm tự do TB tuần?", type: "number", unit: "/10", icon: "🧭" },
+  { id: "rq7", label: "Lĩnh vực lệch nhiều nhất so kế hoạch?", type: "text", icon: "⏱️" },
+];
+
 var SHOP_ITEMS = [
   { id: "streak_freeze", name: "Đóng băng Streak", icon: "❄️", cost: 50, desc: "Bảo vệ streak 1 ngày" },
   { id: "double_xp", name: "Nhân đôi XP", icon: "⚡", cost: 100, desc: "x2 XP trong 1 ngày" },
-  { id: "theme_galaxy", name: "Theme Thiên hà", icon: "🌌", cost: 200, desc: "Đổi nền" },
-  { id: "theme_ocean", name: "Theme Đại dương", icon: "🌊", cost: 200, desc: "Đổi nền" },
 ];
 
 var TODAY = new Date().toISOString().split("T")[0];
+function getWeekId(){var d=new Date();var jan1=new Date(d.getFullYear(),0,1);var days=Math.floor((d-jan1)/86400000);return d.getFullYear()+"-W"+Math.ceil((days+jan1.getDay()+1)/7);}
+function getMonthId(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1);}
+function getLevel(xp){var l=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].minXp)l=LEVELS[i];}return l;}
+function getNextLevel(xp){for(var i=0;i<LEVELS.length;i++){if(xp<LEVELS[i].minXp)return LEVELS[i];}return null;}
+function getCurrentPhase(){var m=new Date().getMonth()+1;if(m<=4)return PHASES[0];if(m<=7)return PHASES[1];if(m<=10)return PHASES[2];return PHASES[3];}
+function getDefault(){return{totalXp:0,gems:10,streak:0,maxStreak:0,totalDays:0,perfectDays:0,sleepStreak:0,readStreak:0,sugarFreeStreak:0,exerciseStreak:0,stickers:0,lastDate:null,history:{},achievements:[],inventory:[],doubleXpToday:false,timeLog:{},freedomScore:{},goals:{},reviews:{}};}
 
-function getLevel(xp) { var lvl = LEVELS[0]; for (var i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].minXp) lvl = LEVELS[i]; } return lvl; }
-function getNextLevel(xp) { for (var i = 0; i < LEVELS.length; i++) { if (xp < LEVELS[i].minXp) return LEVELS[i]; } return null; }
-function getCurrentPhase() { var m = new Date().getMonth() + 1; if (m <= 4) return PHASES[0]; if (m <= 7) return PHASES[1]; if (m <= 10) return PHASES[2]; return PHASES[3]; }
-function getDefaultData() { return { totalXp: 0, gems: 10, streak: 0, maxStreak: 0, totalDays: 0, perfectDays: 0, sleepStreak: 0, foodStreak: 0, readStreak: 0, sugarFreeStreak: 0, exerciseStreak: 0, stickers: 0, lastDate: null, history: {}, achievements: [], inventory: [], doubleXpToday: false, timeLog: {}, freedomScore: {} }; }
+export default function App(){
+  var _p=useState(null),curP=_p[0],setCurP=_p[1];
+  var _d=useState({}),data=_d[0],setData=_d[1];
+  var _v=useState("today"),view=_v[0],setView=_v[1];
+  var _c=useState({}),checked=_c[0],setChecked=_c[1];
+  var _a=useState(null),anim=_a[0],setAnim=_a[1];
+  var _x=useState(null),xpFor=_x[0],setXpFor=_x[1];
+  var _sc=useState(false),showCeleb=_sc[0],setShowCeleb=_sc[1];
+  var _cm=useState(""),celebMsg=_cm[0],setCelebMsg=_cm[1];
+  var _na=useState(null),newAch=_na[0],setNewAch=_na[1];
+  var _l=useState(false),loaded=_l[0],setLoaded=_l[1];
+  var _fs=useState(0),fScore=_fs[0],setFScore=_fs[1];
+  var _te=useState({}),timeE=_te[0],setTimeE=_te[1];
+  var _rv=useState({}),revData=_rv[0],setRevData=_rv[1];
+  var _rt=useState("week"),revType=_rt[0],setRevType=_rt[1];
 
-function ParticleBurst(props) {
-  if (!props.active) return null;
-  var particles = [];
-  for (var i = 0; i < 12; i++) {
-    var angle = (i / 12) * 360;
-    var dist = 40 + Math.random() * 30;
-    var size = 4 + Math.random() * 6;
-    particles.push(React.createElement("div", { key: i, style: { position: "absolute", width: size, height: size, borderRadius: "50%", background: props.color || "#FFD700", left: "50%", top: "50%", animation: "particleBurst 0.6s ease-out forwards", animationDelay: i * 0.02 + "s", transform: "translate(-50%, -50%)", "--tx": Math.cos(angle * Math.PI / 180) * dist + "px", "--ty": Math.sin(angle * Math.PI / 180) * dist + "px" } }));
+  useEffect(function(){async function load(){var pids=Object.keys(PROFILES);for(var i=0;i<pids.length;i++){var d=await loadProfile(pids[i]);if(d){var pid=pids[i];setData(function(prev){var n=Object.assign({},prev);n[pid]=d;return n;});}}setLoaded(true);}load();},[]);
+  var save=useCallback(async function(pid,nd){await saveProfile(pid,nd);},[]);
+  var pd=curP?(data[curP]||getDefault()):null;
+  var isKid=curP?PROFILES[curP].isKid:false;
+  var habits=isKid?KIDS_HABITS:ADULT_HABITS;
+  var cats=isKid?KIDS_CATS:ADULT_CATS;
+
+  useEffect(function(){
+    if(pd&&pd.history&&pd.history[TODAY])setChecked(pd.history[TODAY]);else setChecked({});
+    if(pd&&pd.timeLog&&pd.timeLog[TODAY])setTimeE(pd.timeLog[TODAY]);else setTimeE({});
+    if(pd&&pd.freedomScore&&pd.freedomScore[TODAY])setFScore(pd.freedomScore[TODAY]);else setFScore(0);
+    var wk=getWeekId();if(pd&&pd.reviews&&pd.reviews[wk])setRevData(pd.reviews[wk]);else setRevData({});
+  },[curP,pd?JSON.stringify(pd.history?pd.history[TODAY]:{}):""])
+
+  var toggleH=useCallback(async function(hid){
+    if(!curP)return;var h=habits.find(function(x){return x.id===hid;});
+    var was=!!checked[hid];var nc=Object.assign({},checked);nc[hid]=!was;
+    if(h.exclusive&&!was)nc[h.exclusive]=false;setChecked(nc);
+    var cd=data[curP]||getDefault();var st=isKid?25:30;var mx=isKid?43:100;
+    var xd=was?-h.xp:h.xp;if(!was&&cd.doubleXpToday)xd=h.xp*2;
+    var nh=Object.assign({},cd.history);nh[TODAY]=nc;
+    var tx=0;habits.forEach(function(x){if(nc[x.id])tx+=x.xp;});
+    var done=tx>=st;var streak=cd.streak;var ld=cd.lastDate;
+    if(done&&ld!==TODAY){var yd=new Date(Date.now()-86400000).toISOString().split("T")[0];streak=ld===yd?streak+1:1;ld=TODAY;}
+    var ge=0;var prev=cd.history?cd.history[TODAY]:null;var ptx=0;
+    if(prev)habits.forEach(function(x){if(prev[x.id])ptx+=x.xp;});
+    var wasDone=ptx>=st;if(done&&!wasDone)ge=5;
+    var td=done?(cd.totalDays+(wasDone?0:1)):cd.totalDays;
+    var pf=tx>=mx?(cd.perfectDays+(ptx>=mx?0:1)):cd.perfectDays;
+    var stk=(isKid&&done&&!wasDone)?1:0;
+    var slD=habits.filter(function(x){return x.cat==="sleep";}).some(function(x){return nc[x.id];});
+    var rdD=habits.some(function(x){return x.id.indexOf("read")>=0&&nc[x.id];});
+    var sgD=habits.some(function(x){return x.id.indexOf("sugar")>=0&&nc[x.id];});
+    var exD=habits.filter(function(x){return x.cat==="move";}).some(function(x){return nc[x.id];});
+    var up=Object.assign({},cd,{totalXp:Math.max(0,cd.totalXp+xd),gems:cd.gems+ge,stickers:(cd.stickers||0)+stk,streak:streak,maxStreak:Math.max(streak,cd.maxStreak||0),totalDays:td,perfectDays:pf,lastDate:ld,history:nh,sleepStreak:slD?(cd.sleepStreak||0)+1:0,readStreak:rdD?(cd.readStreak||0)+1:0,sugarFreeStreak:sgD?(cd.sugarFreeStreak||0)+1:0,exerciseStreak:exD?(cd.exerciseStreak||0)+1:0});
+    var na=(cd.achievements||[]).slice();var je=null;
+    ACHIEVEMENTS.forEach(function(a){if(na.indexOf(a.id)<0&&a.cond(up)){na.push(a.id);je=a;}});up.achievements=na;
+    if(!was){setAnim(hid);setXpFor(hid);setTimeout(function(){setAnim(null);setXpFor(null);},800);}
+    var ol=getLevel(cd.totalXp);var nl=getLevel(up.totalXp);
+    if(nl.minXp>ol.minXp&&!was)setTimeout(function(){setCelebMsg("🎉 Lên cấp: "+nl.icon+" "+nl.name+"!");setShowCeleb(true);setTimeout(function(){setShowCeleb(false);},3000);},500);
+    if(je)setTimeout(function(){setNewAch(je);setTimeout(function(){setNewAch(null);},3000);},800);
+    if(done&&!wasDone&&!was)setTimeout(function(){setCelebMsg(isKid?"🎊 +5💎 +1⭐":"🎊 +5💎");setShowCeleb(true);setTimeout(function(){setShowCeleb(false);},3000);},300);
+    var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);
+  },[curP,checked,data,save,habits,isKid]);
+
+  var updateTime=useCallback(async function(cid,delta){if(!curP)return;var ne=Object.assign({},timeE);ne[cid]=Math.max(0,(timeE[cid]||0)+delta);setTimeE(ne);var cd=data[curP]||getDefault();var tl=Object.assign({},cd.timeLog);tl[TODAY]=ne;var up=Object.assign({},cd,{timeLog:tl});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,timeE,data,save]);
+  var saveFreedom=useCallback(async function(sc){if(!curP)return;setFScore(sc);var cd=data[curP]||getDefault();var fs=Object.assign({},cd.freedomScore);fs[TODAY]=sc;var up=Object.assign({},cd,{freedomScore:fs});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,data,save]);
+  var updateGoal=useCallback(async function(gid,val){if(!curP)return;var cd=data[curP]||getDefault();var gs=Object.assign({},cd.goals||{});gs[gid]=val;var up=Object.assign({},cd,{goals:gs});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,data,save]);
+  var saveReview=useCallback(async function(qid,val){if(!curP)return;var nr=Object.assign({},revData);nr[qid]=val;setRevData(nr);var cd=data[curP]||getDefault();var rv=Object.assign({},cd.reviews||{});rv[getWeekId()]=nr;var up=Object.assign({},cd,{reviews:rv});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,revData,data,save]);
+  var redeemT=useCallback(async function(t){if(!curP)return;var c=data[curP]||getDefault();if((c.stickers||0)<t.stickers)return;var up=Object.assign({},c,{stickers:c.stickers-t.stickers});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);setCelebMsg("🎁 "+t.icon+" "+t.name+"!");setShowCeleb(true);setTimeout(function(){setShowCeleb(false);},3000);},[curP,data,save]);
+  var buyI=useCallback(async function(it){if(!curP)return;var c=data[curP]||getDefault();if(c.gems<it.cost)return;var inv=(c.inventory||[]).slice();inv.push(it.id);var up=Object.assign({},c,{gems:c.gems-it.cost,inventory:inv,doubleXpToday:it.id==="double_xp"?true:c.doubleXpToday});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,data,save]);
+
+  if(!loaded)return React.createElement("div",{style:S.loading},React.createElement("style",null,CSS),React.createElement("div",{style:{fontSize:60,animation:"bounce 1s infinite"}},"🌟"),React.createElement("div",{style:{marginTop:16,fontSize:18,color:"#666"}},"Đang tải..."));
+
+  if(!curP){
+    var sorted=Object.entries(PROFILES).sort(function(a,b){return(data[b[0]]?data[b[0]].totalXp:0)-(data[a[0]]?data[a[0]].totalXp:0);});
+    var medals=["🥇","🥈","🥉","4️⃣"];
+    return React.createElement("div",{style:S.ps},React.createElement("style",null,CSS),
+      React.createElement("div",{style:{textAlign:"center",marginBottom:18}},React.createElement("div",{style:{fontSize:48,marginBottom:8}},"🏠"),React.createElement("h1",{style:{margin:0,fontSize:24,fontWeight:800,background:"linear-gradient(135deg,#FF6B6B,#6C63FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}},"Life Blueprint Tracker"),React.createElement("p",{style:{margin:"6px 0 0",color:"#888",fontSize:13}},"Su Family Quest 2026")),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}},Object.entries(PROFILES).map(function(e){var pid=e[0],p=e[1],pd2=data[pid]||getDefault(),lv=getLevel(pd2.totalXp);return React.createElement("button",{key:pid,onClick:function(){setCurP(pid);setView("today");},style:Object.assign({},S.pc,{background:"linear-gradient(135deg,"+p.themeLight+",white)",borderColor:p.theme})},React.createElement("div",{style:{fontSize:36,marginBottom:2}},p.avatar),React.createElement("div",{style:{fontWeight:800,fontSize:14,color:"#333"}},p.name),React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},p.role),React.createElement("div",{style:{fontSize:10}},lv.icon+" "+lv.name),React.createElement("div",{style:{fontSize:10,color:p.theme,fontWeight:700}},(pd2.totalXp||0)+" XP | 🔥"+(pd2.streak||0)));})),
+      React.createElement("div",{style:S.bd},React.createElement("h3",{style:{margin:"0 0 6px",fontSize:13,color:"#666"}},"🏆 Bảng xếp hạng"),sorted.map(function(e,i){var pid=e[0],p=e[1];return React.createElement("div",{key:pid,style:{display:"flex",alignItems:"center",gap:6,padding:"4px 0",fontSize:12}},React.createElement("span",{style:{fontWeight:800}},medals[i]||""),React.createElement("span",null,p.avatar+" "+p.name),React.createElement("span",{style:{marginLeft:"auto",fontWeight:700,color:p.theme}},(data[pid]?data[pid].totalXp:0)+" XP"),React.createElement("span",{style:{color:"#999",fontSize:11}},"🔥"+(data[pid]?data[pid].streak:0)));})));
   }
-  return React.createElement("div", { style: { position: "absolute", inset: 0, pointerEvents: "none", zIndex: 10 } }, particles);
+
+  var pr=PROFILES[curP],pl=pd||getDefault(),lv=getLevel(pl.totalXp),nlv=getNextLevel(pl.totalXp),ph=getCurrentPhase();
+  var st=isKid?25:30,mx=isKid?43:100;var tx=0;habits.forEach(function(h){if(checked[h.id])tx+=h.xp;});
+  var tPct=Math.min(100,(tx/st)*100),lPct=nlv?((pl.totalXp-lv.minXp)/(nlv.minXp-lv.minXp))*100:100;
+  var tPo=0;Object.values(timeE).forEach(function(v){tPo+=v;});
+
+  var kidTabs=[{id:"today",icon:"📋",l:"Hôm nay"},{id:"stats",icon:"📊",l:"Thống kê"},{id:"achievements",icon:"🏅",l:"Huy chương"},{id:"treasure",icon:"🎁",l:"Thưởng"},{id:"shop",icon:"🏪",l:"Shop"}];
+  var adTabs=[{id:"today",icon:"📋",l:"Hành vi"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"goals",icon:"🎯",l:"Mục tiêu"},{id:"review",icon:"📝",l:"Review"},{id:"stats",icon:"📊",l:"Thống kê"}];
+  var tabs=isKid?kidTabs:adTabs;var content=[];
+
+  if(view==="today"){
+    content.push(React.createElement("div",{key:"tgt",style:Object.assign({},S.cd,{background:tPct>=100?"linear-gradient(135deg,#4ECB71,#2ECC71)":"white"})},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},React.createElement("div",null,React.createElement("div",{style:{fontWeight:800,fontSize:15,color:tPct>=100?"white":"#333"}},tPct>=100?"✅ Hoàn thành!":"🎯 Mục tiêu"),React.createElement("div",{style:{fontSize:11,color:tPct>=100?"rgba(255,255,255,0.8)":"#888"}},isKid?"GĐ"+ph.id+": "+ph.name:"≥"+st+"đ/ngày")),React.createElement("div",{style:{fontSize:22,fontWeight:800,color:tPct>=100?"white":pr.theme}},tx+"/"+st)),React.createElement("div",{style:Object.assign({},S.br,{height:8,background:tPct>=100?"rgba(255,255,255,0.3)":"#EEE"})},React.createElement("div",{style:Object.assign({},S.fl,{height:8,width:tPct+"%",background:tPct>=100?"white":"linear-gradient(90deg,"+pr.theme+",#FFD700)",transition:"width 0.5s"})}))));
+    Object.entries(cats).forEach(function(ce){var cid=ce[0],cat=ce[1],ch=habits.filter(function(h){return h.cat===cid;}),cxp=0;ch.forEach(function(h){if(checked[h.id])cxp+=h.xp;});var isFoc=isKid&&ph.focus.indexOf(cid)>=0;
+      content.push(React.createElement("div",{key:cid,style:{marginBottom:10}},React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5,marginBottom:5}},React.createElement("span",{style:{fontSize:14}},cat.icon),React.createElement("span",{style:{fontWeight:700,fontSize:13,color:cat.color}},cat.name),React.createElement("span",{style:{fontSize:10,color:"#999",marginLeft:3}},cxp),isFoc?React.createElement("span",{style:{fontSize:9,background:cat.color+"20",color:cat.color,padding:"1px 5px",borderRadius:8,fontWeight:700,marginLeft:"auto"}},"Focus"):null),
+        ch.map(function(h){var ck=!!checked[h.id],isA=anim===h.id,sX=xpFor===h.id,desc=h["desc_"+curP]||h.desc||"";
+          return React.createElement("button",{key:h.id,onClick:function(){toggleH(h.id);},style:Object.assign({},S.rw,{background:ck?cat.color+"12":"white",borderColor:ck?cat.color+"40":"#EEE",transform:isA?"scale(1.02)":"scale(1)",transition:"all 0.2s",position:"relative",overflow:"visible"})},
+            sX?React.createElement("div",{style:{position:"absolute",top:-20,left:"50%",transform:"translateX(-50%)",fontWeight:800,fontSize:18,color:"#FFD700",zIndex:20,animation:"xpFloat 0.8s ease-out forwards"}},"+"+h.xp):null,
+            React.createElement("div",{style:Object.assign({},S.ck,{background:ck?cat.color:"white",borderColor:ck?cat.color:"#DDD",transform:isA?"scale(1.2)":"scale(1)"})},ck?"✓":null),
+            React.createElement("span",{style:{fontSize:18}},h.emoji),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:ck?cat.color:"#333"}},h.label),desc?React.createElement("div",{style:{fontSize:10,color:"#999"}},desc):null),
+            React.createElement("div",{style:{fontSize:11,fontWeight:700,color:ck?cat.color:"#CCC",background:ck?cat.color+"15":"#F5F5F5",padding:"2px 7px",borderRadius:10}},"+"+h.xp));})));
+    });
+    if(!isKid){var sb=[];for(var i=0;i<10;i++){(function(idx){sb.push(React.createElement("button",{key:idx,onClick:function(){saveFreedom(idx+1);},style:{width:28,height:28,borderRadius:7,border:fScore===idx+1?"2px solid "+pr.theme:"2px solid #EEE",background:fScore>=idx+1?pr.theme+(fScore===idx+1?"":"30"):"white",color:fScore===idx+1?"white":"#666",fontWeight:700,fontSize:11,cursor:"pointer"}},idx+1));})(i);}
+      content.push(React.createElement("div",{key:"free",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:6}},"🧭 Điểm Tự Do"),React.createElement("div",{style:{fontSize:11,color:"#888",marginBottom:6}},"Sống từ lựa chọn hay phản ứng?"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"center"}},sb)));}
+  }
+
+  if(view==="time"&&!isKid){
+    content.push(React.createElement("div",{key:"th",style:S.cd},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontWeight:700,fontSize:14}},"⏱️ Pomodoro"),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:pr.theme}},tPo+"po = "+(tPo*0.5).toFixed(1)+"h"))));
+    TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;content.push(React.createElement("div",{key:"t"+c.id,style:Object.assign({},S.rw,{background:v>0?c.color+"10":"white",borderColor:v>0?c.color+"30":"#EEE"})},React.createElement("span",{style:{fontSize:18,width:28,textAlign:"center"}},c.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:v>0?c.color:"#333"}},c.name),v>0?React.createElement("div",{style:{fontSize:10,color:"#999"}},(v*0.5).toFixed(1)+"h"):null),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("button",{onClick:function(){updateTime(c.id,-1);},style:Object.assign({},S.pb,{opacity:v>0?1:0.3})},"−"),React.createElement("span",{style:{fontWeight:800,fontSize:16,color:c.color,minWidth:22,textAlign:"center"}},v),React.createElement("button",{onClick:function(){updateTime(c.id,1);},style:Object.assign({},S.pb,{background:c.color,color:"white"})},"+"))));});
+  }
+
+  if(view==="goals"&&!isKid){
+    content.push(React.createElement("div",{key:"gh",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontWeight:800,fontSize:16,color:pr.theme}},"🎯 10 Mục tiêu 2026")));
+    GOALS.forEach(function(g){var val=(pl.goals&&pl.goals[g.id])||0;var pct=Math.min(100,(val/g.target)*100);var displayVal=g.step<1?val.toFixed(1):val;
+      content.push(React.createElement("div",{key:"g"+g.id,style:Object.assign({},S.cd,{padding:12})},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:6}},React.createElement("span",{style:{fontSize:24}},g.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},g.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},g.desc)),React.createElement("div",{style:{textAlign:"right"}},React.createElement("div",{style:{fontWeight:800,fontSize:14,color:pct>=100?"#4ECB71":g.color}},displayVal+"/"+g.target),React.createElement("div",{style:{fontSize:10,color:"#999"}},g.unit))),
+        React.createElement("div",{style:Object.assign({},S.br,{height:8,marginBottom:6})},React.createElement("div",{style:Object.assign({},S.fl,{height:8,width:pct+"%",background:pct>=100?"#4ECB71":g.color})})),
+        React.createElement("div",{style:{display:"flex",gap:4,justifyContent:"flex-end"}},React.createElement("button",{onClick:function(){updateGoal(g.id,Math.max(0,parseFloat((val-g.step).toFixed(1))));},style:Object.assign({},S.pb,{width:26,height:26,fontSize:14})},"−"),React.createElement("button",{onClick:function(){updateGoal(g.id,parseFloat((val+g.step).toFixed(1)));},style:Object.assign({},S.pb,{width:26,height:26,fontSize:14,background:g.color,color:"white"})},"+"))));
+    });
+  }
+
+  if(view==="review"&&!isKid){
+    content.push(React.createElement("div",{key:"rv-h",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontWeight:800,fontSize:16,color:pr.theme}},"📝 Review Tuần"),React.createElement("div",{style:{fontSize:11,color:"#888",marginTop:4}},getWeekId()+" | CN tối — 30 phút")));
+    REVIEW_QUESTIONS.forEach(function(q){var val=revData[q.id]||"";
+      content.push(React.createElement("div",{key:"rv"+q.id,style:Object.assign({},S.cd,{padding:12})},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:6}},React.createElement("span",{style:{fontSize:18}},q.icon),React.createElement("div",{style:{fontWeight:700,fontSize:13}},q.label),q.unit?React.createElement("span",{style:{fontSize:11,color:"#999",marginLeft:"auto"}},q.unit):null),
+        q.type==="number"?React.createElement("input",{type:"number",value:val,onChange:function(e){saveReview(q.id,e.target.value);},style:{width:"100%",padding:"8px 12px",borderRadius:8,border:"2px solid #EEE",fontSize:16,fontWeight:700,outline:"none",fontFamily:"inherit"},placeholder:"Nhập số..."}):
+        React.createElement("textarea",{value:val,onChange:function(e){saveReview(q.id,e.target.value);},rows:2,style:{width:"100%",padding:"8px 12px",borderRadius:8,border:"2px solid #EEE",fontSize:14,outline:"none",resize:"vertical",fontFamily:"inherit"},placeholder:"Ghi chú..."})
+      ));
+    });
+    content.push(React.createElement("div",{key:"rv-note",style:{textAlign:"center",fontSize:11,color:"#AAA",marginTop:8,padding:"0 20px"}},"Dữ liệu tự động lưu. Review tháng & quý: sử dụng tab Mục tiêu để cập nhật tiến độ 10 mục tiêu."));
+  }
+
+  if(view==="stats"){
+    var li=LEVELS.indexOf(lv);
+    content.push(React.createElement("div",{key:"lc",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontSize:44}},lv.icon),React.createElement("div",{style:{fontWeight:800,fontSize:20,color:pr.theme}},"Lv."+(li+1)+" "+lv.name),React.createElement("div",{style:{fontSize:13,color:"#666"}},pl.totalXp+" XP")));
+    var si=[{icon:"🔥",l:"Streak",v:pl.streak,c:"#FF6B00"},{icon:"🏆",l:"Max",v:pl.maxStreak||0,c:"#FFD700"},{icon:"📅",l:"Ngày đạt",v:pl.totalDays,c:"#4ECB71"},{icon:"💯",l:"Hoàn hảo",v:pl.perfectDays,c:"#FF69B4"},{icon:"💎",l:"Gems",v:pl.gems,c:"#6C63FF"},{icon:"🏅",l:"Huy chương",v:(pl.achievements||[]).length,c:"#FF8C00"}];
+    content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
+    var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
+    content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
+  }
+
+  if(view==="achievements"){content.push(React.createElement("div",{key:"ag",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},ACHIEVEMENTS.map(function(a){var e=(pl.achievements||[]).indexOf(a.id)>=0;return React.createElement("div",{key:a.id,style:Object.assign({},S.ac,{opacity:e?1:0.4,background:e?"white":"#F5F5F5",border:e?"2px solid "+pr.theme+"40":"2px solid #EEE"})},React.createElement("div",{style:{fontSize:28}},e?a.icon:"🔒"),React.createElement("div",{style:{fontWeight:700,fontSize:12}},a.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},a.desc),e?React.createElement("div",{style:{fontSize:9,color:pr.theme,fontWeight:700,marginTop:3}},"✓"):null);})));}
+
+  if(view==="treasure"&&isKid){content.push(React.createElement("div",{key:"trh",style:{textAlign:"center",marginBottom:12}},React.createElement("div",{style:{fontSize:36}},"⭐"),React.createElement("div",{style:{fontSize:26,fontWeight:800,color:"#FFD700"}},pl.stickers||0),React.createElement("div",{style:{fontSize:12,color:"#888"}},"Sticker hiện có")));TREASURES.forEach(function(t){var ok=(pl.stickers||0)>=t.stickers;content.push(React.createElement("div",{key:"tr"+t.id,style:Object.assign({},S.sp,{opacity:ok?1:0.5})},React.createElement("span",{style:{fontSize:28}},t.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},t.name),React.createElement("div",{style:{fontSize:11,color:"#888"}},"Cần "+t.stickers+"⭐")),React.createElement("button",{onClick:function(){if(ok)redeemT(t);},style:Object.assign({},S.bt,{background:ok?"#FFD700":"#EEE",color:ok?"white":"#999"})},"Đổi")));});}
+
+  if(view==="shop"){content.push(React.createElement("div",{key:"sh",style:{textAlign:"center",marginBottom:12}},React.createElement("div",{style:{fontSize:34}},"💎"),React.createElement("div",{style:{fontSize:26,fontWeight:800,color:"#6C63FF"}},pl.gems),React.createElement("div",{style:{fontSize:12,color:"#888"}},"Gems")));SHOP_ITEMS.forEach(function(it){var ok=pl.gems>=it.cost;content.push(React.createElement("div",{key:"s"+it.id,style:Object.assign({},S.sp,{opacity:ok?1:0.5})},React.createElement("span",{style:{fontSize:28}},it.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},it.name),React.createElement("div",{style:{fontSize:11,color:"#888"}},it.desc)),React.createElement("button",{onClick:function(){if(ok)buyI(it);},style:Object.assign({},S.bt,{background:ok?pr.theme:"#EEE",color:ok?"white":"#999"})},"💎"+it.cost)));});}
+
+  return React.createElement("div",{style:Object.assign({},S.ap,{background:pr.themeLight})},React.createElement("style",null,CSS),
+    showCeleb?React.createElement("div",{style:S.co},React.createElement("div",{style:S.cc},React.createElement("div",{style:{fontSize:48}},"🎉"),React.createElement("div",{style:{fontSize:18,fontWeight:800,marginTop:8}},celebMsg))):null,
+    newAch?React.createElement("div",{style:S.np},React.createElement("div",{style:{fontSize:36}},newAch.icon),React.createElement("div",null,React.createElement("div",{style:{fontWeight:800,fontSize:13}},"Huy chương mới!"),React.createElement("div",{style:{fontWeight:700,fontSize:15}},newAch.name))):null,
+    React.createElement("div",{style:Object.assign({},S.tp,{borderBottomColor:pr.theme+"30"})},React.createElement("button",{onClick:function(){setCurP(null);},style:S.bk},"←"),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("span",{style:{fontSize:20}},pr.avatar),React.createElement("div",null,React.createElement("div",{style:{fontWeight:800,fontSize:13,color:"#333"}},pr.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},lv.icon+" Lv."+(LEVELS.indexOf(lv)+1)))),React.createElement("div",{style:{display:"flex",gap:7,alignItems:"center",fontSize:12}},React.createElement("span",null,"🔥",React.createElement("b",{style:{color:pl.streak>0?"#FF6B00":"#CCC"}},pl.streak)),React.createElement("span",null,"💎",React.createElement("b",{style:{color:"#6C63FF"}},pl.gems)),isKid?React.createElement("span",null,"⭐",React.createElement("b",{style:{color:"#FFD700"}},pl.stickers||0)):null)),
+    React.createElement("div",{style:{padding:"0 16px 5px"}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:10,color:"#888",marginBottom:2}},React.createElement("span",null,"Lv."+(LEVELS.indexOf(lv)+1)),React.createElement("span",null,nlv?pl.totalXp+"/"+nlv.minXp:"MAX")),React.createElement("div",{style:S.br},React.createElement("div",{style:Object.assign({},S.fl,{width:lPct+"%",background:"linear-gradient(90deg,"+pr.theme+","+pr.theme+"CC)"})}))),
+    React.createElement("div",{style:S.tb},tabs.map(function(t){return React.createElement("button",{key:t.id,onClick:function(){setView(t.id);},style:Object.assign({},S.ti,{color:view===t.id?pr.theme:"#999",borderBottomColor:view===t.id?pr.theme:"transparent",fontWeight:view===t.id?700:500})},React.createElement("span",{style:{fontSize:14}},t.icon),React.createElement("span",{style:{fontSize:9}},t.l));})),
+    React.createElement("div",{style:S.ct},content));
 }
 
-function XpPopup(props) {
-  if (!props.show) return null;
-  return React.createElement("div", { style: { position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", fontWeight: 800, fontSize: 18, color: "#FFD700", zIndex: 20, animation: "xpFloat 0.8s ease-out forwards", textShadow: "0 1px 3px rgba(0,0,0,0.3)" } }, "+" + props.xp + " XP");
-}
-
-export default function SuFamilyQuest() {
-  var _s = useState(null), currentProfile = _s[0], setCurrentProfile = _s[1];
-  var _d = useState({}), data = _d[0], setData = _d[1];
-  var _v = useState("today"), view = _v[0], setView = _v[1];
-  var _c = useState({}), checkedToday = _c[0], setCheckedToday = _c[1];
-  var _a = useState(null), animatingHabit = _a[0], setAnimatingHabit = _a[1];
-  var _x = useState(null), showXpFor = _x[0], setShowXpFor = _x[1];
-  var _sc = useState(false), showCelebration = _sc[0], setShowCelebration = _sc[1];
-  var _cm = useState(""), celebrationMsg = _cm[0], setCelebrationMsg = _cm[1];
-  var _na = useState(null), newAchievement = _na[0], setNewAchievement = _na[1];
-  var _l = useState(false), loaded = _l[0], setLoaded = _l[1];
-  var _fs = useState(0), freedomScore = _fs[0], setFreedomScore = _fs[1];
-  var _te = useState({}), timeEntries = _te[0], setTimeEntries = _te[1];
-
-  useEffect(function() {
-    async function load() {
-      var pids = Object.keys(PROFILES);
-      for (var i = 0; i < pids.length; i++) {
-        var profileData = await loadProfile(pids[i]);
-        if (profileData) { setData(function(prev) { var n = Object.assign({}, prev); n[pids[i]] = profileData; return n; }); }
-      }
-      setLoaded(true);
-    }
-    load();
-  }, []);
-
-  var saveDataFn = useCallback(async function(pid, newData) { await saveProfile(pid, newData); }, []);
-
-  var pd = currentProfile ? (data[currentProfile] || getDefaultData()) : null;
-  var isKid = currentProfile ? (PROFILES[currentProfile] && PROFILES[currentProfile].isKid) : false;
-  var habits = isKid ? KIDS_HABITS : TRUONG_HABITS;
-  var categories = isKid ? KIDS_CATEGORIES : TRUONG_CATEGORIES;
-
-  useEffect(function() {
-    if (pd && pd.history && pd.history[TODAY]) setCheckedToday(pd.history[TODAY]);
-    else setCheckedToday({});
-    if (pd && pd.timeLog && pd.timeLog[TODAY]) setTimeEntries(pd.timeLog[TODAY]);
-    else setTimeEntries({});
-    if (pd && pd.freedomScore && pd.freedomScore[TODAY]) setFreedomScore(pd.freedomScore[TODAY]);
-    else setFreedomScore(0);
-  }, [currentProfile, pd ? JSON.stringify(pd.history ? pd.history[TODAY] : {}) : ""]);
-
-  var toggleHabit = useCallback(async function(habitId) {
-    if (!currentProfile) return;
-    var habit = habits.find(function(h) { return h.id === habitId; });
-    var wasChecked = !!checkedToday[habitId];
-    var newChecked = Object.assign({}, checkedToday);
-    newChecked[habitId] = !wasChecked;
-    if (habit.exclusive && !wasChecked) newChecked[habit.exclusive] = false;
-    setCheckedToday(newChecked);
-
-    var currentData = data[currentProfile] || getDefaultData();
-    var maxXpDay = isKid ? 43 : 100;
-    var streakThreshold = isKid ? 25 : 30;
-    var xpDelta = wasChecked ? -habit.xp : habit.xp;
-    if (!wasChecked && currentData.doubleXpToday) xpDelta = habit.xp * 2;
-
-    var newHistory = Object.assign({}, currentData.history);
-    newHistory[TODAY] = newChecked;
-    var todayXp = 0;
-    habits.forEach(function(h) { if (newChecked[h.id]) todayXp += h.xp; });
-    var isCompletedDay = todayXp >= streakThreshold;
-
-    var streak = currentData.streak;
-    var lastDate = currentData.lastDate;
-    if (isCompletedDay && lastDate !== TODAY) {
-      var yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-      streak = lastDate === yesterday ? streak + 1 : 1;
-      lastDate = TODAY;
-    }
-
-    var gemsEarned = 0;
-    var prevDayData = currentData.history ? currentData.history[TODAY] : null;
-    var prevTodayXp = 0;
-    if (prevDayData) habits.forEach(function(h) { if (prevDayData[h.id]) prevTodayXp += h.xp; });
-    var wasDayComplete = prevTodayXp >= streakThreshold;
-    if (isCompletedDay && !wasDayComplete) gemsEarned = 5;
-
-    var totalDays = isCompletedDay ? (currentData.totalDays + (wasDayComplete ? 0 : 1)) : currentData.totalDays;
-    var perfectDays = todayXp >= maxXpDay ? (currentData.perfectDays + (prevTodayXp >= maxXpDay ? 0 : 1)) : currentData.perfectDays;
-    var stickersEarned = (isKid && isCompletedDay && !wasDayComplete) ? 1 : 0;
-
-    var sleepDone = habits.filter(function(h) { return h.cat === "sleep"; }).some(function(h) { return newChecked[h.id]; });
-    var readDone = habits.some(function(h) { return h.id.indexOf("read") >= 0 && newChecked[h.id]; });
-    var sugarDone = habits.some(function(h) { return (h.id.indexOf("sugar") >= 0 || h.id.indexOf("no_sugar") >= 0) && newChecked[h.id]; });
-    var exerciseDone = habits.filter(function(h) { return h.cat === "move"; }).some(function(h) { return newChecked[h.id]; });
-
-    var updated = Object.assign({}, currentData, {
-      totalXp: Math.max(0, currentData.totalXp + xpDelta),
-      gems: currentData.gems + gemsEarned,
-      stickers: (currentData.stickers || 0) + stickersEarned,
-      streak: streak, maxStreak: Math.max(streak, currentData.maxStreak || 0),
-      totalDays: totalDays, perfectDays: perfectDays, lastDate: lastDate, history: newHistory,
-      sleepStreak: sleepDone ? (currentData.sleepStreak || 0) + 1 : 0,
-      readStreak: readDone ? (currentData.readStreak || 0) + 1 : 0,
-      sugarFreeStreak: sugarDone ? (currentData.sugarFreeStreak || 0) + 1 : 0,
-      exerciseStreak: exerciseDone ? (currentData.exerciseStreak || 0) + 1 : 0,
-    });
-
-    var newAchs = (currentData.achievements || []).slice();
-    var justEarned = null;
-    ACHIEVEMENTS.forEach(function(ach) {
-      if (newAchs.indexOf(ach.id) < 0 && ach.condition(updated)) { newAchs.push(ach.id); justEarned = ach; }
-    });
-    updated.achievements = newAchs;
-
-    if (!wasChecked) {
-      setAnimatingHabit(habitId); setShowXpFor(habitId);
-      setTimeout(function() { setAnimatingHabit(null); setShowXpFor(null); }, 800);
-    }
-    var oldLevel = getLevel(currentData.totalXp);
-    var newLevel = getLevel(updated.totalXp);
-    if (newLevel.minXp > oldLevel.minXp && !wasChecked) {
-      setTimeout(function() { setCelebrationMsg("🎉 Lên cấp: " + newLevel.icon + " " + newLevel.name + "!"); setShowCelebration(true); setTimeout(function() { setShowCelebration(false); }, 3000); }, 500);
-    }
-    if (justEarned) { setTimeout(function() { setNewAchievement(justEarned); setTimeout(function() { setNewAchievement(null); }, 3000); }, 800); }
-    if (isCompletedDay && !wasDayComplete && !wasChecked) {
-      setTimeout(function() { setCelebrationMsg(isKid ? "🎊 Hoàn thành! +5💎 +1⭐" : "🎊 Hoàn thành mục tiêu ngày! +5💎"); setShowCelebration(true); setTimeout(function() { setShowCelebration(false); }, 3000); }, 300);
-    }
-
-    var newData = Object.assign({}, data); newData[currentProfile] = updated;
-    setData(newData);
-    await saveDataFn(currentProfile, updated);
-  }, [currentProfile, checkedToday, data, saveDataFn, habits, isKid]);
-
-  var updateTimeEntry = useCallback(async function(catId, delta) {
-    if (!currentProfile) return;
-    var newEntries = Object.assign({}, timeEntries);
-    newEntries[catId] = Math.max(0, (timeEntries[catId] || 0) + delta);
-    setTimeEntries(newEntries);
-    var currentData = data[currentProfile] || getDefaultData();
-    var newTimeLog = Object.assign({}, currentData.timeLog);
-    newTimeLog[TODAY] = newEntries;
-    var updated = Object.assign({}, currentData, { timeLog: newTimeLog });
-    var newData = Object.assign({}, data); newData[currentProfile] = updated;
-    setData(newData);
-    await saveDataFn(currentProfile, updated);
-  }, [currentProfile, timeEntries, data, saveDataFn]);
-
-  var saveFreedomScoreFn = useCallback(async function(score) {
-    if (!currentProfile) return;
-    setFreedomScore(score);
-    var currentData = data[currentProfile] || getDefaultData();
-    var newFS = Object.assign({}, currentData.freedomScore);
-    newFS[TODAY] = score;
-    var updated = Object.assign({}, currentData, { freedomScore: newFS });
-    var newData = Object.assign({}, data); newData[currentProfile] = updated;
-    setData(newData);
-    await saveDataFn(currentProfile, updated);
-  }, [currentProfile, data, saveDataFn]);
-
-  var redeemTreasure = useCallback(async function(treasure) {
-    if (!currentProfile) return;
-    var curr = data[currentProfile] || getDefaultData();
-    if ((curr.stickers || 0) < treasure.stickers) return;
-    var updated = Object.assign({}, curr, { stickers: curr.stickers - treasure.stickers });
-    var newData = Object.assign({}, data); newData[currentProfile] = updated;
-    setData(newData);
-    await saveDataFn(currentProfile, updated);
-    setCelebrationMsg("🎁 Đã đổi: " + treasure.icon + " " + treasure.name + "!");
-    setShowCelebration(true);
-    setTimeout(function() { setShowCelebration(false); }, 3000);
-  }, [currentProfile, data, saveDataFn]);
-
-  var buyItem = useCallback(async function(item) {
-    if (!currentProfile) return;
-    var curr = data[currentProfile] || getDefaultData();
-    if (curr.gems < item.cost) return;
-    var inv = (curr.inventory || []).slice(); inv.push(item.id);
-    var updated = Object.assign({}, curr, { gems: curr.gems - item.cost, inventory: inv, doubleXpToday: item.id === "double_xp" ? true : curr.doubleXpToday });
-    var newData = Object.assign({}, data); newData[currentProfile] = updated;
-    setData(newData);
-    await saveDataFn(currentProfile, updated);
-  }, [currentProfile, data, saveDataFn]);
-
-  if (!loaded) {
-    return React.createElement("div", { style: S.loadingScreen },
-      React.createElement("style", null, globalCSS),
-      React.createElement("div", { style: { fontSize: 60, animation: "bounce 1s infinite" } }, "🌟"),
-      React.createElement("div", { style: { marginTop: 16, fontSize: 18, color: "#666" } }, "Đang tải...")
-    );
-  }
-
-  // PROFILE SELECT
-  if (!currentProfile) {
-    var sorted = Object.entries(PROFILES).sort(function(a, b) { return (data[b[0]] ? data[b[0]].totalXp : 0) - (data[a[0]] ? data[a[0]].totalXp : 0); });
-    var medals = ["🥇", "🥈", "🥉"];
-    return React.createElement("div", { style: S.profileScreen },
-      React.createElement("style", null, globalCSS),
-      React.createElement("div", { style: S.profileTitle },
-        React.createElement("div", { style: { fontSize: 48, marginBottom: 8 } }, "🏠"),
-        React.createElement("h1", { style: { margin: 0, fontSize: 26, fontWeight: 800, background: "linear-gradient(135deg, #FF6B6B, #6C63FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" } }, "Life Blueprint Tracker"),
-        React.createElement("p", { style: { margin: "8px 0 0", color: "#888", fontSize: 13 } }, "Su Family Quest 2026")
-      ),
-      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 } },
-        Object.entries(PROFILES).map(function(entry) {
-          var pid = entry[0], p = entry[1];
-          var pd2 = data[pid] || getDefaultData();
-          var lvl = getLevel(pd2.totalXp);
-          return React.createElement("button", { key: pid, onClick: function() { setCurrentProfile(pid); setView("today"); }, style: Object.assign({}, S.profileCard, { background: "linear-gradient(135deg, " + p.themeLight + ", white)", borderColor: p.theme }) },
-            React.createElement("div", { style: { fontSize: 40, marginBottom: 2 } }, p.avatar),
-            React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: "#333" } }, p.name),
-            React.createElement("div", { style: { fontSize: 10, color: "#888", marginBottom: 4 } }, p.role),
-            React.createElement("div", { style: { fontSize: 11 } }, lvl.icon + " " + lvl.name),
-            React.createElement("div", { style: { fontSize: 11, color: p.theme, fontWeight: 700 } }, (pd2.totalXp || 0) + " XP | 🔥" + (pd2.streak || 0))
-          );
-        })
-      ),
-      React.createElement("div", { style: S.familyBoard },
-        React.createElement("h3", { style: { margin: "0 0 8px", fontSize: 14, color: "#666" } }, "🏆 Bảng xếp hạng gia đình"),
-        sorted.map(function(entry, i) {
-          var pid = entry[0], p = entry[1];
-          return React.createElement("div", { key: pid, style: { display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13 } },
-            React.createElement("span", { style: { fontWeight: 800 } }, medals[i] || ""),
-            React.createElement("span", null, p.avatar + " " + p.name),
-            React.createElement("span", { style: { marginLeft: "auto", fontWeight: 700, color: p.theme } }, (data[pid] ? data[pid].totalXp : 0) + " XP"),
-            React.createElement("span", { style: { color: "#999", fontSize: 12 } }, "🔥" + (data[pid] ? data[pid].streak : 0))
-          );
-        })
-      )
-    );
-  }
-
-  // MAIN VIEW
-  var profile = PROFILES[currentProfile];
-  var playerData = pd || getDefaultData();
-  var level = getLevel(playerData.totalXp);
-  var nextLevel = getNextLevel(playerData.totalXp);
-  var phase = getCurrentPhase();
-  var streakThreshold = isKid ? 25 : 30;
-  var maxXpDay = isKid ? 43 : 100;
-  var todayXp = 0;
-  habits.forEach(function(h) { if (checkedToday[h.id]) todayXp += h.xp; });
-  var todayPct = Math.min(100, (todayXp / streakThreshold) * 100);
-  var levelPct = nextLevel ? ((playerData.totalXp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100 : 100;
-  var totalPo = 0;
-  Object.values(timeEntries).forEach(function(v) { totalPo += v; });
-
-  var kidTabs = [
-    { id: "today", icon: "📋", label: "Hôm nay" },
-    { id: "stats", icon: "📊", label: "Thống kê" },
-    { id: "achievements", icon: "🏅", label: "Huy chương" },
-    { id: "treasure", icon: "🎁", label: "Phần thưởng" },
-    { id: "shop", icon: "🏪", label: "Shop" },
-  ];
-  var adultTabs = [
-    { id: "today", icon: "📋", label: "Hành vi" },
-    { id: "time", icon: "⏱️", label: "Thời gian" },
-    { id: "stats", icon: "📊", label: "Thống kê" },
-    { id: "achievements", icon: "🏅", label: "Huy chương" },
-  ];
-  var tabs = isKid ? kidTabs : adultTabs;
-
-  var content = [];
-
-  // TODAY/HABITS
-  if (view === "today") {
-    // Target card
-    content.push(React.createElement("div", { key: "target", style: Object.assign({}, S.card, { background: todayPct >= 100 ? "linear-gradient(135deg, #4ECB71, #2ECC71)" : "white" }) },
-      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } },
-        React.createElement("div", null,
-          React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: todayPct >= 100 ? "white" : "#333" } }, todayPct >= 100 ? "✅ Hoàn thành!" : "🎯 Mục tiêu hôm nay"),
-          React.createElement("div", { style: { fontSize: 11, color: todayPct >= 100 ? "rgba(255,255,255,0.8)" : "#888" } }, isKid ? "GĐ" + phase.id + ": " + phase.name : "Tối thiểu ≥" + streakThreshold + "đ | Tốt ≥42đ")
-        ),
-        React.createElement("div", { style: { fontSize: 22, fontWeight: 800, color: todayPct >= 100 ? "white" : profile.theme } }, todayXp + "/" + streakThreshold)
-      ),
-      React.createElement("div", { style: Object.assign({}, S.progressBar, { height: 8, background: todayPct >= 100 ? "rgba(255,255,255,0.3)" : "#EEE" }) },
-        React.createElement("div", { style: Object.assign({}, S.progressFill, { height: 8, width: Math.min(100, todayPct) + "%", background: todayPct >= 100 ? "white" : "linear-gradient(90deg, " + profile.theme + ", #FFD700)", transition: "width 0.5s ease" }) })
-      )
-    ));
-
-    // Habit categories
-    Object.entries(categories).forEach(function(catEntry) {
-      var catId = catEntry[0], cat = catEntry[1];
-      var catHabits = habits.filter(function(h) { return h.cat === catId; });
-      var catXp = 0;
-      catHabits.forEach(function(h) { if (checkedToday[h.id]) catXp += h.xp; });
-      var isFocus = isKid && phase.focus.indexOf(catId) >= 0;
-
-      var rows = catHabits.map(function(habit) {
-        var checked = !!checkedToday[habit.id];
-        var isAnim = animatingHabit === habit.id;
-        var showXp = showXpFor === habit.id;
-        var desc = habit["desc_" + currentProfile] || habit.desc || "";
-        return React.createElement("button", { key: habit.id, onClick: function() { toggleHabit(habit.id); }, style: Object.assign({}, S.habitRow, { background: checked ? cat.color + "12" : "white", borderColor: checked ? cat.color + "40" : "#EEE", transform: isAnim ? "scale(1.02)" : "scale(1)", transition: "all 0.2s ease", position: "relative", overflow: "visible" }) },
-          React.createElement(ParticleBurst, { active: isAnim, color: cat.color }),
-          React.createElement(XpPopup, { xp: playerData.doubleXpToday ? habit.xp * 2 : habit.xp, show: showXp }),
-          React.createElement("div", { style: Object.assign({}, S.checkbox, { background: checked ? cat.color : "white", borderColor: checked ? cat.color : "#DDD", transform: isAnim ? "scale(1.2)" : "scale(1)" }) }, checked ? React.createElement("span", { style: { color: "white", fontSize: 13, fontWeight: 800 } }, "✓") : null),
-          React.createElement("span", { style: { fontSize: 18 } }, habit.emoji),
-          React.createElement("div", { style: { flex: 1 } },
-            React.createElement("div", { style: { fontWeight: 600, fontSize: 13, color: checked ? cat.color : "#333" } }, habit.label),
-            desc ? React.createElement("div", { style: { fontSize: 10, color: "#999" } }, desc) : null
-          ),
-          React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: checked ? cat.color : "#CCC", background: checked ? cat.color + "15" : "#F5F5F5", padding: "2px 7px", borderRadius: 10 } }, "+" + habit.xp)
-        );
-      });
-
-      content.push(React.createElement("div", { key: catId, style: { marginBottom: 10 } },
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, marginBottom: 5, padding: "0 2px" } },
-          React.createElement("span", { style: { fontSize: 14 } }, cat.icon),
-          React.createElement("span", { style: { fontWeight: 700, fontSize: 13, color: cat.color } }, cat.name),
-          React.createElement("span", { style: { fontSize: 10, color: "#999", marginLeft: 3 } }, catXp),
-          isFocus ? React.createElement("span", { style: { fontSize: 9, background: cat.color + "20", color: cat.color, padding: "1px 5px", borderRadius: 8, fontWeight: 700, marginLeft: "auto" } }, "Focus") : null
-        ),
-        rows
-      ));
-    });
-
-    // Freedom Score (Truong)
-    if (!isKid) {
-      var scoreButtons = [];
-      for (var si = 0; si < 10; si++) {
-        (function(idx) {
-          scoreButtons.push(React.createElement("button", { key: idx, onClick: function() { saveFreedomScoreFn(idx + 1); }, style: { width: 30, height: 30, borderRadius: 8, border: freedomScore === idx + 1 ? "2px solid " + profile.theme : "2px solid #EEE", background: freedomScore >= idx + 1 ? profile.theme + (freedomScore === idx + 1 ? "" : "30") : "white", color: freedomScore === idx + 1 ? "white" : "#666", fontWeight: 700, fontSize: 12, cursor: "pointer" } }, idx + 1));
-        })(si);
-      }
-      content.push(React.createElement("div", { key: "freedom", style: S.card },
-        React.createElement("div", { style: { fontWeight: 700, fontSize: 14, marginBottom: 6 } }, "🧭 Điểm Tự Do"),
-        React.createElement("div", { style: { fontSize: 11, color: "#888", marginBottom: 8 } }, "Hôm nay tôi sống từ sự lựa chọn hay từ phản ứng?"),
-        React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "center" } }, scoreButtons)
-      ));
-    }
-  }
-
-  // TIME TRACKER
-  if (view === "time" && !isKid) {
-    content.push(React.createElement("div", { key: "time-header", style: S.card },
-      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
-        React.createElement("div", { style: { fontWeight: 700, fontSize: 14 } }, "⏱️ Pomodoro hôm nay"),
-        React.createElement("div", { style: { fontSize: 20, fontWeight: 800, color: profile.theme } }, totalPo + " po = " + (totalPo * 0.5).toFixed(1) + "h")
-      )
-    ));
-
-    TIME_CATS.forEach(function(cat) {
-      var val = timeEntries[cat.id] || 0;
-      content.push(React.createElement("div", { key: "tc-" + cat.id, style: Object.assign({}, S.habitRow, { background: val > 0 ? cat.color + "10" : "white", borderColor: val > 0 ? cat.color + "30" : "#EEE" }) },
-        React.createElement("span", { style: { fontSize: 18, width: 28, textAlign: "center" } }, cat.icon),
-        React.createElement("div", { style: { flex: 1 } },
-          React.createElement("div", { style: { fontWeight: 600, fontSize: 13, color: val > 0 ? cat.color : "#333" } }, cat.name),
-          val > 0 ? React.createElement("div", { style: { fontSize: 10, color: "#999" } }, (val * 0.5).toFixed(1) + "h") : null
-        ),
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
-          React.createElement("button", { onClick: function() { updateTimeEntry(cat.id, -1); }, style: Object.assign({}, S.poBtn, { opacity: val > 0 ? 1 : 0.3 }) }, "−"),
-          React.createElement("span", { style: { fontWeight: 800, fontSize: 16, color: cat.color, minWidth: 24, textAlign: "center" } }, val),
-          React.createElement("button", { onClick: function() { updateTimeEntry(cat.id, 1); }, style: Object.assign({}, S.poBtn, { background: cat.color, color: "white" }) }, "+")
-        )
-      ));
-    });
-
-    if (totalPo > 0) {
-      var bars = TIME_CATS.filter(function(c) { return (timeEntries[c.id] || 0) > 0; }).sort(function(a, b) { return (timeEntries[b.id] || 0) - (timeEntries[a.id] || 0); }).map(function(cat) {
-        var val = timeEntries[cat.id] || 0;
-        var pct = (val / totalPo) * 100;
-        return React.createElement("div", { key: "bar-" + cat.id, style: { marginBottom: 6 } },
-          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 } },
-            React.createElement("span", null, cat.icon + " " + cat.name),
-            React.createElement("span", { style: { fontWeight: 700, color: cat.color } }, val + "po (" + pct.toFixed(0) + "%)")
-          ),
-          React.createElement("div", { style: Object.assign({}, S.progressBar, { height: 6 }) },
-            React.createElement("div", { style: Object.assign({}, S.progressFill, { height: 6, width: pct + "%", background: cat.color }) })
-          )
-        );
-      });
-      content.push(React.createElement("div", { key: "time-chart", style: S.card },
-        React.createElement("div", { style: { fontWeight: 700, fontSize: 13, marginBottom: 8 } }, "📊 Phân bổ hôm nay"),
-        bars
-      ));
-    }
-  }
-
-  // STATS
-  if (view === "stats") {
-    var lvIdx = LEVELS.indexOf(level);
-    content.push(React.createElement("div", { key: "level-card", style: Object.assign({}, S.card, { textAlign: "center" }) },
-      React.createElement("div", { style: { fontSize: 44 } }, level.icon),
-      React.createElement("div", { style: { fontWeight: 800, fontSize: 20, color: profile.theme } }, "Lv." + (lvIdx + 1) + " " + level.name),
-      React.createElement("div", { style: { fontSize: 13, color: "#666" } }, playerData.totalXp + " XP")
-    ));
-    var statItems = [
-      { icon: "🔥", label: "Streak", value: playerData.streak, color: "#FF6B00" },
-      { icon: "🏆", label: "Max Streak", value: playerData.maxStreak || 0, color: "#FFD700" },
-      { icon: "📅", label: "Ngày đạt", value: playerData.totalDays, color: "#4ECB71" },
-      { icon: "💯", label: "Hoàn hảo", value: playerData.perfectDays, color: "#FF69B4" },
-      { icon: "💎", label: "Gems", value: playerData.gems, color: "#6C63FF" },
-      { icon: "🏅", label: "Huy chương", value: (playerData.achievements || []).length, color: "#FF8C00" },
-    ];
-    content.push(React.createElement("div", { key: "stat-grid", style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
-      statItems.map(function(s, i) {
-        return React.createElement("div", { key: i, style: S.statCard },
-          React.createElement("span", { style: { fontSize: 22 } }, s.icon),
-          React.createElement("div", { style: { fontSize: 24, fontWeight: 800, color: s.color } }, s.value),
-          React.createElement("div", { style: { fontSize: 10, color: "#888" } }, s.label)
-        );
-      })
-    ));
-    // 7-day chart
-    var dayBars = [];
-    var dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    for (var di = 0; di < 7; di++) {
-      var d = new Date(Date.now() - (6 - di) * 86400000);
-      var key = d.toISOString().split("T")[0];
-      var dayData = (playerData.history && playerData.history[key]) ? playerData.history[key] : {};
-      var dayXp = 0;
-      habits.forEach(function(h) { if (dayData[h.id]) dayXp += h.xp; });
-      var pct = Math.min(100, (dayXp / streakThreshold) * 100);
-      dayBars.push(React.createElement("div", { key: di, style: { flex: 1, textAlign: "center" } },
-        React.createElement("div", { style: { fontSize: 9, color: "#888", marginBottom: 3 } }, dayNames[d.getDay()]),
-        React.createElement("div", { style: { height: 44, borderRadius: 5, background: "#F0F0F0", position: "relative", overflow: "hidden" } },
-          React.createElement("div", { style: { position: "absolute", bottom: 0, width: "100%", height: pct + "%", background: pct >= 100 ? profile.theme : profile.theme + "60", borderRadius: 5 } })
-        ),
-        React.createElement("div", { style: { fontSize: 9, fontWeight: 700, color: pct >= 100 ? profile.theme : "#999", marginTop: 2 } }, dayXp)
-      ));
-    }
-    content.push(React.createElement("div", { key: "7day", style: S.card },
-      React.createElement("div", { style: { fontWeight: 700, fontSize: 13, marginBottom: 8 } }, "📆 7 ngày gần nhất"),
-      React.createElement("div", { style: { display: "flex", gap: 3, justifyContent: "space-between" } }, dayBars)
-    ));
-  }
-
-  // ACHIEVEMENTS
-  if (view === "achievements") {
-    content.push(React.createElement("div", { key: "ach-grid", style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
-      ACHIEVEMENTS.map(function(ach) {
-        var earned = (playerData.achievements || []).indexOf(ach.id) >= 0;
-        return React.createElement("div", { key: ach.id, style: Object.assign({}, S.achCard, { opacity: earned ? 1 : 0.4, background: earned ? "white" : "#F5F5F5", border: earned ? "2px solid " + profile.theme + "40" : "2px solid #EEE" }) },
-          React.createElement("div", { style: { fontSize: 28 } }, earned ? ach.icon : "🔒"),
-          React.createElement("div", { style: { fontWeight: 700, fontSize: 12 } }, ach.name),
-          React.createElement("div", { style: { fontSize: 10, color: "#888" } }, ach.desc),
-          earned ? React.createElement("div", { style: { fontSize: 9, color: profile.theme, fontWeight: 700, marginTop: 3 } }, "Đã đạt ✓") : null
-        );
-      })
-    ));
-  }
-
-  // TREASURE
-  if (view === "treasure" && isKid) {
-    content.push(React.createElement("div", { key: "tr-header", style: { textAlign: "center", marginBottom: 14 } },
-      React.createElement("div", { style: { fontSize: 36 } }, "⭐"),
-      React.createElement("div", { style: { fontSize: 26, fontWeight: 800, color: "#FFD700" } }, playerData.stickers || 0),
-      React.createElement("div", { style: { fontSize: 12, color: "#888" } }, "Sticker hiện có"),
-      React.createElement("div", { style: { fontSize: 10, color: "#AAA", marginTop: 4 } }, "Kiếm 1⭐ mỗi ngày đạt mục tiêu")
-    ));
-    TREASURES.forEach(function(t) {
-      var canRedeem = (playerData.stickers || 0) >= t.stickers;
-      content.push(React.createElement("div", { key: "tr-" + t.id, style: Object.assign({}, S.shopItem, { opacity: canRedeem ? 1 : 0.5 }) },
-        React.createElement("span", { style: { fontSize: 30 } }, t.icon),
-        React.createElement("div", { style: { flex: 1 } },
-          React.createElement("div", { style: { fontWeight: 700, fontSize: 13 } }, t.name),
-          React.createElement("div", { style: { fontSize: 11, color: "#888" } }, "Cần " + t.stickers + "⭐")
-        ),
-        React.createElement("button", { onClick: function() { if (canRedeem) redeemTreasure(t); }, style: Object.assign({}, S.buyBtn, { background: canRedeem ? "#FFD700" : "#EEE", color: canRedeem ? "white" : "#999", cursor: canRedeem ? "pointer" : "default" }) }, "Đổi ⭐" + t.stickers)
-      ));
-    });
-  }
-
-  // SHOP
-  if (view === "shop") {
-    content.push(React.createElement("div", { key: "shop-header", style: { textAlign: "center", marginBottom: 14 } },
-      React.createElement("div", { style: { fontSize: 34 } }, "💎"),
-      React.createElement("div", { style: { fontSize: 26, fontWeight: 800, color: "#6C63FF" } }, playerData.gems),
-      React.createElement("div", { style: { fontSize: 12, color: "#888" } }, "Gems hiện có")
-    ));
-    SHOP_ITEMS.forEach(function(item) {
-      var canAfford = playerData.gems >= item.cost;
-      content.push(React.createElement("div", { key: "sh-" + item.id, style: Object.assign({}, S.shopItem, { opacity: canAfford ? 1 : 0.5 }) },
-        React.createElement("span", { style: { fontSize: 28 } }, item.icon),
-        React.createElement("div", { style: { flex: 1 } },
-          React.createElement("div", { style: { fontWeight: 700, fontSize: 13 } }, item.name),
-          React.createElement("div", { style: { fontSize: 11, color: "#888" } }, item.desc)
-        ),
-        React.createElement("button", { onClick: function() { if (canAfford) buyItem(item); }, style: Object.assign({}, S.buyBtn, { background: canAfford ? profile.theme : "#EEE", color: canAfford ? "white" : "#999", cursor: canAfford ? "pointer" : "default" }) }, "💎" + item.cost)
-      ));
-    });
-  }
-
-  return React.createElement("div", { style: Object.assign({}, S.app, { background: profile.themeLight }) },
-    React.createElement("style", null, globalCSS),
-    showCelebration ? React.createElement("div", { style: S.celebrationOverlay }, React.createElement("div", { style: S.celebrationCard }, React.createElement("div", { style: { fontSize: 48 } }, "🎉"), React.createElement("div", { style: { fontSize: 18, fontWeight: 800, marginTop: 8 } }, celebrationMsg))) : null,
-    newAchievement ? React.createElement("div", { style: S.achievementPopup }, React.createElement("div", { style: { fontSize: 36 } }, newAchievement.icon), React.createElement("div", null, React.createElement("div", { style: { fontWeight: 800, fontSize: 13 } }, "Huy chương mới!"), React.createElement("div", { style: { fontWeight: 700, fontSize: 15 } }, newAchievement.name))) : null,
-    // Top bar
-    React.createElement("div", { style: Object.assign({}, S.topBar, { borderBottomColor: profile.theme + "30" }) },
-      React.createElement("button", { onClick: function() { setCurrentProfile(null); }, style: S.backBtn }, "←"),
-      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
-        React.createElement("span", { style: { fontSize: 22 } }, profile.avatar),
-        React.createElement("div", null,
-          React.createElement("div", { style: { fontWeight: 800, fontSize: 14, color: "#333" } }, profile.name),
-          React.createElement("div", { style: { fontSize: 10, color: "#888" } }, level.icon + " Lv." + (LEVELS.indexOf(level) + 1) + " " + level.name)
-        )
-      ),
-      React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", fontSize: 12 } },
-        React.createElement("span", null, "🔥", React.createElement("b", { style: { color: playerData.streak > 0 ? "#FF6B00" : "#CCC" } }, playerData.streak)),
-        React.createElement("span", null, "💎", React.createElement("b", { style: { color: "#6C63FF" } }, playerData.gems)),
-        isKid ? React.createElement("span", null, "⭐", React.createElement("b", { style: { color: "#FFD700" } }, playerData.stickers || 0)) : null
-      )
-    ),
-    // Level bar
-    React.createElement("div", { style: { padding: "0 16px 6px" } },
-      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 10, color: "#888", marginBottom: 2 } },
-        React.createElement("span", null, "Lv." + (LEVELS.indexOf(level) + 1)),
-        React.createElement("span", null, nextLevel ? playerData.totalXp + "/" + nextLevel.minXp : "MAX")
-      ),
-      React.createElement("div", { style: S.progressBar }, React.createElement("div", { style: Object.assign({}, S.progressFill, { width: levelPct + "%", background: "linear-gradient(90deg, " + profile.theme + ", " + profile.theme + "CC)" }) }))
-    ),
-    // Nav
-    React.createElement("div", { style: S.navTabs },
-      tabs.map(function(tab) {
-        return React.createElement("button", { key: tab.id, onClick: function() { setView(tab.id); }, style: Object.assign({}, S.navTab, { color: view === tab.id ? profile.theme : "#999", borderBottomColor: view === tab.id ? profile.theme : "transparent", fontWeight: view === tab.id ? 700 : 500 }) },
-          React.createElement("span", { style: { fontSize: 16 } }, tab.icon),
-          React.createElement("span", { style: { fontSize: 10 } }, tab.label)
-        );
-      })
-    ),
-    React.createElement("div", { style: S.content }, content)
-  );
-}
-
-var S = {
-  app: { maxWidth: 420, margin: "0 auto", minHeight: "100vh", fontFamily: "'Nunito', 'Segoe UI', sans-serif", position: "relative" },
-  loadingScreen: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "'Nunito', 'Segoe UI', sans-serif" },
-  profileScreen: { maxWidth: 420, margin: "0 auto", minHeight: "100vh", padding: 20, background: "linear-gradient(180deg, #FFF5F5, #F0F0FF, #F0FFF0)", fontFamily: "'Nunito', 'Segoe UI', sans-serif" },
-  profileTitle: { textAlign: "center", marginBottom: 20 },
-  profileCard: { border: "2px solid", borderRadius: 16, padding: "14px 6px", cursor: "pointer", textAlign: "center", background: "white", transition: "transform 0.2s", outline: "none" },
-  familyBoard: { background: "white", borderRadius: 14, padding: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
-  topBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(10px)", borderBottom: "2px solid", position: "sticky", top: 0, zIndex: 50 },
-  backBtn: { width: 32, height: 32, borderRadius: 10, border: "2px solid #EEE", background: "white", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  navTabs: { display: "flex", borderBottom: "2px solid #EEE", background: "white" },
-  navTab: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1, padding: "6px 2px", border: "none", borderBottom: "3px solid transparent", background: "none", cursor: "pointer", transition: "all 0.2s" },
-  content: { padding: "10px 14px 80px" },
-  card: { background: "white", borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #F0F0F0" },
-  progressBar: { height: 5, borderRadius: 10, background: "#EEE", overflow: "hidden" },
-  progressFill: { height: 5, borderRadius: 10, transition: "width 0.4s ease" },
-  habitRow: { display: "flex", alignItems: "center", gap: 8, padding: "9px 10px", borderRadius: 12, border: "2px solid", marginBottom: 5, cursor: "pointer", width: "100%", textAlign: "left", outline: "none", position: "relative" },
-  checkbox: { width: 24, height: 24, borderRadius: 7, border: "2px solid", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", flexShrink: 0 },
-  statCard: { background: "white", borderRadius: 12, padding: 12, textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #F0F0F0" },
-  achCard: { borderRadius: 12, padding: 12, textAlign: "center" },
-  shopItem: { display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "white", borderRadius: 12, marginBottom: 7, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #F0F0F0" },
-  buyBtn: { border: "none", borderRadius: 9, padding: "7px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer" },
-  poBtn: { width: 30, height: 30, borderRadius: 8, border: "2px solid #EEE", background: "white", fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  celebrationOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, animation: "fadeIn 0.3s ease" },
-  celebrationCard: { background: "white", borderRadius: 20, padding: "28px 36px", textAlign: "center", animation: "popIn 0.4s ease", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  achievementPopup: { position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: "white", borderRadius: 14, padding: "10px 18px", display: "flex", alignItems: "center", gap: 10, zIndex: 100, boxShadow: "0 8px 30px rgba(0,0,0,0.15)", animation: "slideDown 0.4s ease", border: "2px solid #FFD700" },
-};
-
-var globalCSS = "@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap'); * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } body { margin: 0; padding: 0; } button:hover { transform: scale(1.01); } button:active { transform: scale(0.98) !important; } @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } @keyframes particleBurst { 0% { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0); } } @keyframes xpFloat { 0% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } } @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes slideDown { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }";
+var S={ap:{maxWidth:420,margin:"0 auto",minHeight:"100vh",fontFamily:"'Nunito','Segoe UI',sans-serif",position:"relative"},loading:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",fontFamily:"'Nunito','Segoe UI',sans-serif"},ps:{maxWidth:420,margin:"0 auto",minHeight:"100vh",padding:18,background:"linear-gradient(180deg,#FFF5F5,#F0F0FF,#F0FFF0)",fontFamily:"'Nunito','Segoe UI',sans-serif"},pc:{border:"2px solid",borderRadius:14,padding:"12px 6px",cursor:"pointer",textAlign:"center",background:"white",transition:"transform 0.2s",outline:"none"},bd:{background:"white",borderRadius:12,padding:12,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"},tp:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",background:"rgba(255,255,255,0.9)",backdropFilter:"blur(10px)",borderBottom:"2px solid",position:"sticky",top:0,zIndex:50},bk:{width:30,height:30,borderRadius:9,border:"2px solid #EEE",background:"white",fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"},tb:{display:"flex",borderBottom:"2px solid #EEE",background:"white",overflowX:"auto"},ti:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:1,padding:"5px 1px",border:"none",borderBottom:"3px solid transparent",background:"none",cursor:"pointer",transition:"all 0.2s",minWidth:0},ct:{padding:"10px 12px 80px"},cd:{background:"white",borderRadius:12,padding:12,marginBottom:8,boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #F0F0F0"},br:{height:5,borderRadius:10,background:"#EEE",overflow:"hidden"},fl:{height:5,borderRadius:10,transition:"width 0.4s ease"},rw:{display:"flex",alignItems:"center",gap:7,padding:"8px 9px",borderRadius:11,border:"2px solid",marginBottom:4,cursor:"pointer",width:"100%",textAlign:"left",outline:"none",position:"relative"},ck:{width:22,height:22,borderRadius:6,border:"2px solid",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s",flexShrink:0,color:"white",fontSize:13,fontWeight:800},st:{background:"white",borderRadius:11,padding:10,textAlign:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #F0F0F0"},ac:{borderRadius:11,padding:10,textAlign:"center"},sp:{display:"flex",alignItems:"center",gap:9,padding:"10px 12px",background:"white",borderRadius:11,marginBottom:6,boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #F0F0F0"},bt:{border:"none",borderRadius:8,padding:"6px 11px",fontWeight:700,fontSize:12,cursor:"pointer"},pb:{width:28,height:28,borderRadius:7,border:"2px solid #EEE",background:"white",fontSize:15,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"},co:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,animation:"fadeIn 0.3s"},cc:{background:"white",borderRadius:18,padding:"24px 32px",textAlign:"center",animation:"popIn 0.4s",boxShadow:"0 20px 60px rgba(0,0,0,0.2)"},np:{position:"fixed",top:14,left:"50%",transform:"translateX(-50%)",background:"white",borderRadius:12,padding:"9px 16px",display:"flex",alignItems:"center",gap:9,zIndex:100,boxShadow:"0 8px 30px rgba(0,0,0,0.15)",animation:"slideDown 0.4s",border:"2px solid #FFD700"}};
+var CSS="@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}body{margin:0;padding:0;}button:hover{transform:scale(1.01);}button:active{transform:scale(0.98)!important;}input,textarea{font-family:'Nunito','Segoe UI',sans-serif;}@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}@keyframes xpFloat{0%{opacity:1;transform:translateX(-50%) translateY(0);}100%{opacity:0;transform:translateX(-50%) translateY(-30px);}}@keyframes popIn{0%{transform:scale(0.5);opacity:0;}50%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}@keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}";
