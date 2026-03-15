@@ -4,8 +4,9 @@ import { loadProfile, saveProfile } from "./firebase";
 var KIDS_HABITS = [
   { id: "sleep_hours", cat: "sleep", label: "Ngủ đủ giờ", emoji: "🌙", xp: 10, desc_bong: "≥9h", desc_beo: "≥9.5h" },
   { id: "bedtime", cat: "sleep", label: "Lên giường đúng giờ", emoji: "🛏️", xp: 2, desc_bong: "<21:30", desc_beo: "<21:00" },
-  { id: "breakfast", cat: "food", label: "Bữa sáng đủ", emoji: "🍳", xp: 5 },
-  { id: "dinner", cat: "food", label: "Bữa tối đủ", emoji: "🍲", xp: 5 },
+  { id: "breakfast", cat: "food", label: "Bữa sáng đủ", emoji: "🍳", xp: 3 },
+  { id: "lunch", cat: "food", label: "Bữa trưa đủ", emoji: "🍱", xp: 3 },
+  { id: "dinner", cat: "food", label: "Bữa tối đủ", emoji: "🍲", xp: 3 },
   { id: "milk", cat: "food", label: "Uống sữa", emoji: "🥛", xp: 1 },
   { id: "supplement", cat: "food", label: "TPCN", emoji: "💊", xp: 3 },
   { id: "no_sugar", cat: "food", label: "Không đường", emoji: "🚫", xp: 3 },
@@ -17,7 +18,9 @@ var KIDS_HABITS = [
 ];
 
 var ADULT_HABITS = [
-  { id: "t_meal", cat: "food", label: "Bữa ăn chuẩn", emoji: "🥗", xp: 5, desc: "Rau+protein+tinh bột+béo+quả (x2=10đ)" },
+  { id: "t_breakfast", cat: "food", label: "Bữa sáng chuẩn", emoji: "🍳", xp: 3 },
+  { id: "t_lunch", cat: "food", label: "Bữa trưa chuẩn", emoji: "🍱", xp: 3 },
+  { id: "t_dinner", cat: "food", label: "Bữa tối chuẩn", emoji: "🍲", xp: 4 },
   { id: "t_no_sugar", cat: "food", label: "Không ăn đường", emoji: "🚫", xp: 3 },
   { id: "t_water", cat: "food", label: "Uống đủ nước ≥2L", emoji: "💧", xp: 3 },
   { id: "t_supplement", cat: "food", label: "TPCN đầy đủ", emoji: "💊", xp: 4 },
@@ -88,6 +91,8 @@ var TREASURES = [
   { id: "movie_night", name: "Tối xem phim", icon: "🎬", stickers: 8 },
   { id: "park_trip", name: "Đi công viên", icon: "🎡", stickers: 10 },
   { id: "toy_small", name: "Đồ chơi nhỏ", icon: "🎁", stickers: 15 },
+  { id: "screen_10min", name: "10 phút thiết bị", icon: "📱", stickers: 5 },
+  { id: "bookstore", name: "Đi nhà sách Tiến Thọ", icon: "📚", stickers: 5 },
 ];
 
 var TIME_CATS = [
@@ -192,7 +197,17 @@ export default function App(){
     var rdD=habits.some(function(x){return x.id.indexOf("read")>=0&&nc[x.id];});
     var sgD=habits.some(function(x){return x.id.indexOf("sugar")>=0&&nc[x.id];});
     var exD=habits.filter(function(x){return x.cat==="move";}).some(function(x){return nc[x.id];});
-    var up=Object.assign({},cd,{totalXp:Math.max(0,cd.totalXp+xd),gems:cd.gems+ge,stickers:(cd.stickers||0)+stk,streak:streak,maxStreak:Math.max(streak,cd.maxStreak||0),totalDays:td,perfectDays:pf,lastDate:ld,history:nh,sleepStreak:slD?(cd.sleepStreak||0)+1:0,readStreak:rdD?(cd.readStreak||0)+1:0,sugarFreeStreak:sgD?(cd.sugarFreeStreak||0)+1:0,exerciseStreak:exD?(cd.exerciseStreak||0)+1:0});
+    var prevSlD=prev&&habits.filter(function(x){return x.cat==="sleep";}).some(function(x){return prev[x.id];});
+    var prevRdD=prev&&habits.some(function(x){return x.id.indexOf("read")>=0&&prev[x.id];});
+    var prevSgD=prev&&habits.some(function(x){return x.id.indexOf("sugar")>=0&&prev[x.id];});
+    var prevExD=prev&&habits.filter(function(x){return x.cat==="move";}).some(function(x){return prev[x.id];});
+    var yd2=new Date(Date.now()-86400000).toISOString().split("T")[0];var prevH=cd.history?cd.history[yd2]:null;
+    var baseSlS=cd.lastDate===yd2?(cd.sleepStreak||0):(cd.lastDate===TODAY&&prevSlD?(cd.sleepStreak||0):0);
+    var baseRdS=cd.lastDate===yd2?(cd.readStreak||0):(cd.lastDate===TODAY&&prevRdD?(cd.readStreak||0):0);
+    var baseSgS=cd.lastDate===yd2?(cd.sugarFreeStreak||0):(cd.lastDate===TODAY&&prevSgD?(cd.sugarFreeStreak||0):0);
+    var baseExS=cd.lastDate===yd2?(cd.exerciseStreak||0):(cd.lastDate===TODAY&&prevExD?(cd.exerciseStreak||0):0);
+    if(cd.lastDate===TODAY){baseSlS=prevSlD?baseSlS:Math.max(0,baseSlS-1);baseRdS=prevRdD?baseRdS:Math.max(0,baseRdS-1);baseSgS=prevSgD?baseSgS:Math.max(0,baseSgS-1);baseExS=prevExD?baseExS:Math.max(0,baseExS-1);}
+    var up=Object.assign({},cd,{totalXp:Math.max(0,cd.totalXp+xd),gems:cd.gems+ge,stickers:(cd.stickers||0)+stk,streak:streak,maxStreak:Math.max(streak,cd.maxStreak||0),totalDays:td,perfectDays:pf,lastDate:ld,history:nh,sleepStreak:slD?(prevSlD?cd.sleepStreak:baseSlS+1):0,readStreak:rdD?(prevRdD?cd.readStreak:baseRdS+1):0,sugarFreeStreak:sgD?(prevSgD?cd.sugarFreeStreak:baseSgS+1):0,exerciseStreak:exD?(prevExD?cd.exerciseStreak:baseExS+1):0});
     var na=(cd.achievements||[]).slice();var je=null;
     ACHIEVEMENTS.forEach(function(a){if(na.indexOf(a.id)<0&&a.cond(up)){na.push(a.id);je=a;}});up.achievements=na;
     if(!was){setAnim(hid);setXpFor(hid);setTimeout(function(){setAnim(null);setXpFor(null);},800);}
@@ -279,6 +294,19 @@ export default function App(){
     content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
     var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
     content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
+    if(!isKid&&tPo>0){
+      var pieStops=[];var cumPct=0;var pieLegend=[];
+      TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
+      var grad=pieStops.length>0?"conic-gradient("+pieStops.join(",")+")":"#EEE";
+      content.push(React.createElement("div",{key:"pie",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"⏱️ Phân bổ thời gian hôm nay"),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",marginBottom:12}},
+          React.createElement("div",{style:{width:160,height:160,borderRadius:"50%",background:grad,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},
+            React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:80,height:80,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"inset 0 0 8px rgba(0,0,0,0.05)"}},
+              React.createElement("div",{style:{fontSize:22,fontWeight:800,color:pr.theme}},tPo),
+              React.createElement("div",{style:{fontSize:9,color:"#888"}},"pomodoro")))),
+        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},pieLegend.map(function(it){return React.createElement("div",{key:it.name,style:{display:"flex",alignItems:"center",gap:4,fontSize:11,background:it.color+"12",padding:"3px 8px",borderRadius:8}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:it.color,display:"inline-block"}}),React.createElement("span",null,it.icon+" "+it.name),React.createElement("span",{style:{fontWeight:700,color:it.color}},it.v+"po ("+it.pct+"%)"));}))));
+    }
   }
 
   if(view==="achievements"){content.push(React.createElement("div",{key:"ag",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},ACHIEVEMENTS.map(function(a){var e=(pl.achievements||[]).indexOf(a.id)>=0;return React.createElement("div",{key:a.id,style:Object.assign({},S.ac,{opacity:e?1:0.4,background:e?"white":"#F5F5F5",border:e?"2px solid "+pr.theme+"40":"2px solid #EEE"})},React.createElement("div",{style:{fontSize:28}},e?a.icon:"🔒"),React.createElement("div",{style:{fontWeight:700,fontSize:12}},a.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},a.desc),e?React.createElement("div",{style:{fontSize:9,color:pr.theme,fontWeight:700,marginTop:3}},"✓"):null);})));}
