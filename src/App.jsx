@@ -290,23 +290,23 @@ export default function App(){
   if(view==="stats"){
     var li=LEVELS.indexOf(lv);
     content.push(React.createElement("div",{key:"lc",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontSize:44}},lv.icon),React.createElement("div",{style:{fontWeight:800,fontSize:20,color:pr.theme}},"Lv."+(li+1)+" "+lv.name),React.createElement("div",{style:{fontSize:13,color:"#666"}},pl.totalXp+" XP")));
+    if(!isKid&&tPo>0){
+      var pieStops=[];var cumPct=0;var pieLegend=[];
+      TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
+      var grad="conic-gradient("+pieStops.join(",")+")";
+      content.push(React.createElement("div",{key:"pie",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"⏱️ Phân bổ thời gian hôm nay"),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",marginBottom:12}},
+          React.createElement("div",{style:{width:180,height:180,borderRadius:"50%",background:grad,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},
+            React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:90,height:90,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"inset 0 0 8px rgba(0,0,0,0.05)"}},
+              React.createElement("div",{style:{fontSize:24,fontWeight:800,color:pr.theme}},tPo+"po"),
+              React.createElement("div",{style:{fontSize:11,color:"#888"}},(tPo*0.5).toFixed(1)+"h")))),
+        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},pieLegend.map(function(it){return React.createElement("div",{key:it.name,style:{display:"flex",alignItems:"center",gap:4,fontSize:11,background:it.color+"15",padding:"3px 8px",borderRadius:8}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:it.color,display:"inline-block",flexShrink:0}}),React.createElement("span",null,it.icon+" "+it.name),React.createElement("span",{style:{fontWeight:700,color:it.color}},it.v+"po ("+it.pct+"%)"));}))));
+    }
     var si=[{icon:"🔥",l:"Streak",v:pl.streak,c:"#FF6B00"},{icon:"🏆",l:"Max",v:pl.maxStreak||0,c:"#FFD700"},{icon:"📅",l:"Ngày đạt",v:pl.totalDays,c:"#4ECB71"},{icon:"💯",l:"Hoàn hảo",v:pl.perfectDays,c:"#FF69B4"},{icon:"💎",l:"Gems",v:pl.gems,c:"#6C63FF"},{icon:"🏅",l:"Huy chương",v:(pl.achievements||[]).length,c:"#FF8C00"}];
     content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
     var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
     content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
-    if(!isKid&&tPo>0){
-      var pieStops=[];var cumPct=0;var pieLegend=[];
-      TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
-      var grad=pieStops.length>0?"conic-gradient("+pieStops.join(",")+")":"#EEE";
-      content.push(React.createElement("div",{key:"pie",style:S.cd},
-        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"⏱️ Phân bổ thời gian hôm nay"),
-        React.createElement("div",{style:{display:"flex",justifyContent:"center",marginBottom:12}},
-          React.createElement("div",{style:{width:160,height:160,borderRadius:"50%",background:grad,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},
-            React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:80,height:80,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"inset 0 0 8px rgba(0,0,0,0.05)"}},
-              React.createElement("div",{style:{fontSize:22,fontWeight:800,color:pr.theme}},tPo),
-              React.createElement("div",{style:{fontSize:9,color:"#888"}},"pomodoro")))),
-        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},pieLegend.map(function(it){return React.createElement("div",{key:it.name,style:{display:"flex",alignItems:"center",gap:4,fontSize:11,background:it.color+"12",padding:"3px 8px",borderRadius:8}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:it.color,display:"inline-block"}}),React.createElement("span",null,it.icon+" "+it.name),React.createElement("span",{style:{fontWeight:700,color:it.color}},it.v+"po ("+it.pct+"%)"));}))));
-    }
   }
 
   if(view==="achievements"){content.push(React.createElement("div",{key:"ag",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},ACHIEVEMENTS.map(function(a){var e=(pl.achievements||[]).indexOf(a.id)>=0;return React.createElement("div",{key:a.id,style:Object.assign({},S.ac,{opacity:e?1:0.4,background:e?"white":"#F5F5F5",border:e?"2px solid "+pr.theme+"40":"2px solid #EEE"})},React.createElement("div",{style:{fontSize:28}},e?a.icon:"🔒"),React.createElement("div",{style:{fontWeight:700,fontSize:12}},a.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},a.desc),e?React.createElement("div",{style:{fontSize:9,color:pr.theme,fontWeight:700,marginTop:3}},"✓"):null);})));}
