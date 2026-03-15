@@ -95,6 +95,14 @@ var TREASURES = [
   { id: "bookstore", name: "Đi nhà sách Tiến Thọ", icon: "📚", stickers: 5 },
 ];
 
+var KIDS_TIME_CATS = [
+  { id: "study", name: "Học tập", icon: "📚", color: "#3498DB" },
+  { id: "sports", name: "Thể chất", icon: "⚽", color: "#27AE60" },
+  { id: "play", name: "Vui chơi", icon: "🎮", color: "#E67E22" },
+  { id: "family", name: "Gia đình", icon: "👨‍👩‍👧‍👦", color: "#E74C3C" },
+  { id: "friends", name: "Bạn bè", icon: "🤝", color: "#9B59B6" },
+];
+
 var TIME_CATS = [
   { id: "health", name: "Sức khỏe", icon: "💪", color: "#27AE60" },
   { id: "family", name: "Gia đình", icon: "👨‍👩‍👧‍👦", color: "#E74C3C" },
@@ -241,7 +249,7 @@ export default function App(){
   var tPct=Math.min(100,(tx/st)*100),lPct=nlv?((pl.totalXp-lv.minXp)/(nlv.minXp-lv.minXp))*100:100;
   var tPo=0;Object.values(timeE).forEach(function(v){tPo+=v;});
 
-  var kidTabs=[{id:"today",icon:"📋",l:"Hôm nay"},{id:"stats",icon:"📊",l:"Thống kê"},{id:"achievements",icon:"🏅",l:"Huy chương"},{id:"treasure",icon:"🎁",l:"Thưởng"},{id:"shop",icon:"🏪",l:"Shop"}];
+  var kidTabs=[{id:"today",icon:"📋",l:"Hôm nay"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"stats",icon:"📊",l:"Thống kê"},{id:"achievements",icon:"🏅",l:"Huy chương"},{id:"treasure",icon:"🎁",l:"Thưởng"},{id:"shop",icon:"🏪",l:"Shop"}];
   var adTabs=[{id:"today",icon:"📋",l:"Hành vi"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"goals",icon:"🎯",l:"Mục tiêu"},{id:"review",icon:"📝",l:"Review"},{id:"stats",icon:"📊",l:"Thống kê"}];
   var tabs=isKid?kidTabs:adTabs;var content=[];
 
@@ -263,6 +271,12 @@ export default function App(){
   if(view==="time"&&!isKid){
     content.push(React.createElement("div",{key:"th",style:S.cd},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontWeight:700,fontSize:14}},"⏱️ Pomodoro"),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:pr.theme}},tPo+"po = "+(tPo*0.5).toFixed(1)+"h"))));
     TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;content.push(React.createElement("div",{key:"t"+c.id,style:Object.assign({},S.rw,{background:v>0?c.color+"10":"white",borderColor:v>0?c.color+"30":"#EEE"})},React.createElement("span",{style:{fontSize:18,width:28,textAlign:"center"}},c.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:v>0?c.color:"#333"}},c.name),v>0?React.createElement("div",{style:{fontSize:10,color:"#999"}},(v*0.5).toFixed(1)+"h"):null),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("button",{onClick:function(){updateTime(c.id,-1);},style:Object.assign({},S.pb,{opacity:v>0?1:0.3})},"−"),React.createElement("span",{style:{fontWeight:800,fontSize:16,color:c.color,minWidth:22,textAlign:"center"}},v),React.createElement("button",{onClick:function(){updateTime(c.id,1);},style:Object.assign({},S.pb,{background:c.color,color:"white"})},"+"))));});
+  }
+
+  if(view==="time"&&isKid){
+    content.push(React.createElement("div",{key:"th",style:S.cd},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontWeight:700,fontSize:14}},"⏱️ Thời gian hôm nay"),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:pr.theme}},tPo+"po = "+(tPo*0.5).toFixed(1)+"h"))));
+    content.push(React.createElement("div",{key:"tunit",style:{textAlign:"center",fontSize:11,color:"#888",marginBottom:8}},"1 po = 30 phút"));
+    KIDS_TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;content.push(React.createElement("div",{key:"t"+c.id,style:Object.assign({},S.rw,{background:v>0?c.color+"10":"white",borderColor:v>0?c.color+"30":"#EEE"})},React.createElement("span",{style:{fontSize:18,width:28,textAlign:"center"}},c.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:v>0?c.color:"#333"}},c.name),v>0?React.createElement("div",{style:{fontSize:10,color:"#999"}},(v*0.5).toFixed(1)+"h"):null),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("button",{onClick:function(){updateTime(c.id,-1);},style:Object.assign({},S.pb,{opacity:v>0?1:0.3})},"−"),React.createElement("span",{style:{fontWeight:800,fontSize:16,color:c.color,minWidth:22,textAlign:"center"}},v),React.createElement("button",{onClick:function(){updateTime(c.id,1);},style:Object.assign({},S.pb,{background:c.color,color:"white"})},"+"))));});
   }
 
   if(view==="goals"&&!isKid){
@@ -290,9 +304,10 @@ export default function App(){
   if(view==="stats"){
     var li=LEVELS.indexOf(lv);
     content.push(React.createElement("div",{key:"lc",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontSize:44}},lv.icon),React.createElement("div",{style:{fontWeight:800,fontSize:20,color:pr.theme}},"Lv."+(li+1)+" "+lv.name),React.createElement("div",{style:{fontSize:13,color:"#666"}},pl.totalXp+" XP")));
-    if(!isKid&&tPo>0){
+    if(tPo>0){
+      var pieTimeCats=isKid?KIDS_TIME_CATS:TIME_CATS;
       var pieStops=[];var cumPct=0;var pieLegend=[];
-      TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
+      pieTimeCats.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
       var grad="conic-gradient("+pieStops.join(",")+")";
       content.push(React.createElement("div",{key:"pie",style:S.cd},
         React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"⏱️ Phân bổ thời gian hôm nay"),
