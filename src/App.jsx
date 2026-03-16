@@ -15,6 +15,9 @@ var KIDS_HABITS = [
   { id: "reading", cat: "mind", label: "Đọc sách 15 phút", emoji: "📖", xp: 2 },
   { id: "no_screen", cat: "mind", label: "Không screen tối", emoji: "📵", xp: 3 },
   { id: "family_talk", cat: "mind", label: "Trò chuyện gia đình", emoji: "💬", xp: 2 },
+  { id: "eat_proactive", cat: "food", label: "Ăn chủ động", emoji: "🌟", xp: 3, desc_bong: "Tự giác không nhắc", desc_beo: "Tự giác không nhắc" },
+  { id: "sleep_proactive", cat: "sleep", label: "Ngủ chủ động", emoji: "⭐", xp: 5, desc_bong: "Tự lên giường", desc_beo: "Tự lên giường" },
+  { id: "exercise_proactive", cat: "move", label: "Vận động chủ động", emoji: "🏆", xp: 5, desc_bong: "Tự giác vận động", desc_beo: "Tự giác vận động" },
 ];
 
 var ADULT_HABITS = [
@@ -322,6 +325,25 @@ export default function App(){
     content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
     var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
     content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
+    if(!isKid){
+      var weekTimeCats=TIME_CATS;var weekTimeBars=[];
+      for(var wi=0;wi<7;wi++){var wd=new Date(Date.now()-(6-wi)*86400000),wk2=wd.toISOString().split("T")[0];
+        var dayTime=(pl.timeLog&&pl.timeLog[wk2])?pl.timeLog[wk2]:{};var dayTotal=0;Object.values(dayTime).forEach(function(v){dayTotal+=v;});
+        var daySegs=[];var segCum=0;
+        weekTimeCats.forEach(function(c){var v=dayTime[c.id]||0;if(v>0&&dayTotal>0){var sp=(v/Math.max(dayTotal,1))*100;daySegs.push(React.createElement("div",{key:c.id,style:{width:"100%",height:sp+"%",background:c.color,transition:"height 0.3s"}}));}});
+        var maxPo=16;var barH=Math.min(100,(dayTotal/maxPo)*100);
+        weekTimeBars.push(React.createElement("div",{key:wi,style:{flex:1,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[wd.getDay()]),
+          React.createElement("div",{style:{height:60,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",justifyContent:"flex-end"}},
+            React.createElement("div",{style:{width:"100%",height:barH+"%",display:"flex",flexDirection:"column",borderRadius:5,overflow:"hidden"}},daySegs)),
+          React.createElement("div",{style:{fontSize:9,fontWeight:700,color:dayTotal>0?pr.theme:"#999",marginTop:2}},dayTotal>0?dayTotal+"po":"-")));}
+      var timeLegend=[];weekTimeCats.forEach(function(c){var wkTotal=0;for(var li2=0;li2<7;li2++){var ld2=new Date(Date.now()-(6-li2)*86400000).toISOString().split("T")[0];var lt=(pl.timeLog&&pl.timeLog[ld2])?pl.timeLog[ld2]:{};wkTotal+=(lt[c.id]||0);}if(wkTotal>0)timeLegend.push(React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:3,fontSize:10}},React.createElement("span",{style:{width:7,height:7,borderRadius:"50%",background:c.color,display:"inline-block",flexShrink:0}}),React.createElement("span",null,c.icon+" "+c.name),React.createElement("span",{style:{fontWeight:700,color:c.color}},wkTotal+"po")));});
+      var weekPoTotal=0;for(var wt=0;wt<7;wt++){var wtd=new Date(Date.now()-(6-wt)*86400000).toISOString().split("T")[0];var wtt=(pl.timeLog&&pl.timeLog[wtd])?pl.timeLog[wtd]:{};Object.values(wtt).forEach(function(v){weekPoTotal+=v;});}
+      content.push(React.createElement("div",{key:"7dt",style:S.cd},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},"⏱️ Thời gian 7 ngày"),React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pr.theme}},weekPoTotal+"po = "+(weekPoTotal*0.5).toFixed(1)+"h")),
+        React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between",marginBottom:8}},weekTimeBars),
+        timeLegend.length>0?React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},timeLegend):null));
+    }
   }
 
   if(view==="achievements"){content.push(React.createElement("div",{key:"ag",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},ACHIEVEMENTS.map(function(a){var e=(pl.achievements||[]).indexOf(a.id)>=0;return React.createElement("div",{key:a.id,style:Object.assign({},S.ac,{opacity:e?1:0.4,background:e?"white":"#F5F5F5",border:e?"2px solid "+pr.theme+"40":"2px solid #EEE"})},React.createElement("div",{style:{fontSize:28}},e?a.icon:"🔒"),React.createElement("div",{style:{fontWeight:700,fontSize:12}},a.name),React.createElement("div",{style:{fontSize:10,color:"#888"}},a.desc),e?React.createElement("div",{style:{fontSize:9,color:pr.theme,fontWeight:700,marginTop:3}},"✓"):null);})));}
