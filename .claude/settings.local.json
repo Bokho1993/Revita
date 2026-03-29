@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx react-scripts:*)",
       "Bash(cd:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

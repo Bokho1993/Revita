@@ -7,7 +7,9 @@ var KIDS_HABITS = [
   { id: "breakfast", cat: "food", label: "Bữa sáng đủ", emoji: "🍳", xp: 3 },
   { id: "lunch", cat: "food", label: "Bữa trưa đủ", emoji: "🍱", xp: 3 },
   { id: "dinner", cat: "food", label: "Bữa tối đủ", emoji: "🍲", xp: 3 },
-  { id: "milk", cat: "food", label: "Uống sữa", emoji: "🥛", xp: 1 },
+  { id: "milk_morning", cat: "food", label: "Sữa sáng", emoji: "🥛", xp: 1 },
+  { id: "milk_lunch", cat: "food", label: "Sữa trưa", emoji: "🥛", xp: 1 },
+  { id: "milk_evening", cat: "food", label: "Sữa tối", emoji: "🥛", xp: 1 },
   { id: "supplement", cat: "food", label: "TPCN", emoji: "💊", xp: 3 },
   { id: "no_sugar", cat: "food", label: "Không đường", emoji: "🚫", xp: 3 },
   { id: "water", cat: "food", label: "Uống nước ≥1.5L", emoji: "💧", xp: 2 },
@@ -325,8 +327,42 @@ export default function App(){
     content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
     var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
     content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
-    if(!isKid){
-      var weekTimeCats=TIME_CATS;var weekTimeBars=[];
+    var wkToday=new Date();var wkDay=wkToday.getDay();var mondayOffset=wkDay===0?6:wkDay-1;var wkMonday=new Date(wkToday);wkMonday.setDate(wkToday.getDate()-mondayOffset);
+    var weekDays=[];for(var wd2=0;wd2<7;wd2++){var wdd=new Date(wkMonday);wdd.setDate(wkMonday.getDate()+wd2);weekDays.push(wdd.toISOString().split("T")[0]);}
+    var mealIds=isKid?["breakfast","lunch","dinner"]:["t_breakfast","t_lunch","t_dinner"];
+    var weekRows=[];var totalMeals=0;var totalMealTarget=21;
+    habits.forEach(function(h){
+      var isMeal=mealIds.indexOf(h.id)>=0;
+      var cnt=0;weekDays.forEach(function(dk){var dh=(pl.history&&pl.history[dk])?pl.history[dk]:{};if(dh[h.id])cnt++;});
+      if(isMeal)totalMeals+=cnt;
+      var target=7;var pctW=Math.min(100,(cnt/target)*100);
+      var cat2=cats[h.cat];var barColor=cat2?cat2.color:pr.theme;
+      weekRows.push(React.createElement("div",{key:"wk_"+h.id,style:{display:"flex",alignItems:"center",gap:6,marginBottom:5}},
+        React.createElement("span",{style:{fontSize:16,width:22,textAlign:"center",flexShrink:0}},h.emoji),
+        React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}},
+            React.createElement("span",{style:{fontSize:11,fontWeight:600,color:"#333",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},h.label),
+            React.createElement("span",{style:{fontSize:11,fontWeight:700,color:pctW>=100?"#4ECB71":barColor}},cnt+"/"+target)),
+          React.createElement("div",{style:{height:6,borderRadius:3,background:"#EEE",overflow:"hidden"}},
+            React.createElement("div",{style:{height:6,borderRadius:3,width:pctW+"%",background:pctW>=100?"linear-gradient(90deg,#4ECB71,#2ECC71)":"linear-gradient(90deg,"+barColor+","+barColor+"AA)",transition:"width 0.4s"}})))));
+    });
+    var mealPctW=Math.min(100,(totalMeals/totalMealTarget)*100);var mealColor="#FF6B6B";
+    weekRows.push(React.createElement("div",{key:"wk_meals_total",style:{display:"flex",alignItems:"center",gap:6,marginTop:8,paddingTop:8,borderTop:"1px dashed #EEE"}},
+      React.createElement("span",{style:{fontSize:16,width:22,textAlign:"center",flexShrink:0}},"🍽️"),
+      React.createElement("div",{style:{flex:1,minWidth:0}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}},
+          React.createElement("span",{style:{fontSize:11,fontWeight:700,color:"#333"}},"Tổng bữa ăn (sáng+trưa+tối)"),
+          React.createElement("span",{style:{fontSize:11,fontWeight:800,color:mealPctW>=100?"#4ECB71":mealColor}},totalMeals+"/"+totalMealTarget)),
+        React.createElement("div",{style:{height:8,borderRadius:4,background:"#EEE",overflow:"hidden"}},
+          React.createElement("div",{style:{height:8,borderRadius:4,width:mealPctW+"%",background:mealPctW>=100?"linear-gradient(90deg,#4ECB71,#2ECC71)":"linear-gradient(90deg,"+mealColor+",#FFB347)",transition:"width 0.4s"}})))));
+    var wkLabel=weekDays[0].slice(5).replace("-","/")+"-"+weekDays[6].slice(5).replace("-","/");
+    content.push(React.createElement("div",{key:"wkacc",style:S.cd},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13}},"🔄 Tích lũy tuần (T2 - CN)"),
+        React.createElement("div",{style:{fontSize:10,color:"#888",fontWeight:600}},wkLabel)),
+      weekRows));
+    {
+      var weekTimeCats=isKid?KIDS_TIME_CATS:TIME_CATS;var weekTimeBars=[];
       for(var wi=0;wi<7;wi++){var wd=new Date(Date.now()-(6-wi)*86400000),wk2=wd.toISOString().split("T")[0];
         var dayTime=(pl.timeLog&&pl.timeLog[wk2])?pl.timeLog[wk2]:{};var dayTotal=0;Object.values(dayTime).forEach(function(v){dayTotal+=v;});
         var daySegs=[];var segCum=0;
@@ -343,6 +379,22 @@ export default function App(){
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},"⏱️ Thời gian 7 ngày"),React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pr.theme}},weekPoTotal+"po = "+(weekPoTotal*0.5).toFixed(1)+"h")),
         React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between",marginBottom:8}},weekTimeBars),
         timeLegend.length>0?React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},timeLegend):null));
+      var wkTimeTotals={};weekTimeCats.forEach(function(c){wkTimeTotals[c.id]=0;});
+      weekDays.forEach(function(dk){var dayTime=(pl.timeLog&&pl.timeLog[dk])?pl.timeLog[dk]:{};weekTimeCats.forEach(function(c){wkTimeTotals[c.id]+=(dayTime[c.id]||0);});});
+      var wkPoWeekTotal=0;weekTimeCats.forEach(function(c){wkPoWeekTotal+=wkTimeTotals[c.id];});
+      if(wkPoWeekTotal>0){
+        var wkTimeSorted=weekTimeCats.filter(function(c){return wkTimeTotals[c.id]>0;}).sort(function(a,b){return wkTimeTotals[b.id]-wkTimeTotals[a.id];});
+        var wkMaxPo=wkTimeSorted.length>0?wkTimeTotals[wkTimeSorted[0].id]:1;
+        var wkTimeBarsNew=wkTimeSorted.map(function(c){var v=wkTimeTotals[c.id];var bw=Math.round((v/wkMaxPo)*100);return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",gap:6,marginBottom:5}},React.createElement("span",{style:{fontSize:16,width:22,textAlign:"center",flexShrink:0}},c.icon),React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{fontSize:12,fontWeight:600,color:"#333",marginBottom:2}},c.name),React.createElement("div",{style:{height:7,borderRadius:4,background:"#EEE",overflow:"hidden"}},React.createElement("div",{style:{height:7,borderRadius:4,width:bw+"%",background:c.color,transition:"width 0.4s"}}))),React.createElement("div",{style:{fontSize:11,fontWeight:700,color:c.color,whiteSpace:"nowrap"}},v+"po ("+(v*0.5).toFixed(1)+"h)"));});
+        var wkPieStops=[];var wkCumPct=0;var wkPieLegend=[];
+        wkTimeSorted.forEach(function(c){var v=wkTimeTotals[c.id];var pct=(v/wkPoWeekTotal)*100;wkPieStops.push(c.color+" "+wkCumPct+"% "+(wkCumPct+pct)+"%");wkPieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v});wkCumPct+=pct;});
+        var wkGrad="conic-gradient("+wkPieStops.join(",")+")";
+        content.push(React.createElement("div",{key:"wktime",style:S.cd},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},React.createElement("div",{style:{fontWeight:700,fontSize:13}},"⏱️ Thời gian tuần"),React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pr.theme}},wkPoWeekTotal+"po = "+(wkPoWeekTotal*0.5).toFixed(1)+"h")),
+          wkTimeBarsNew,
+          React.createElement("div",{style:{display:"flex",justifyContent:"center",margin:"10px 0 8px"}},React.createElement("div",{style:{width:150,height:150,borderRadius:"50%",background:wkGrad,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:100,height:100,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",boxShadow:"inset 0 0 8px rgba(0,0,0,0.05)"}},React.createElement("div",{style:{fontSize:18,fontWeight:800,color:pr.theme}},wkPoWeekTotal+"po"),React.createElement("div",{style:{fontSize:11,color:"#888"}},(wkPoWeekTotal*0.5).toFixed(1)+"h")))),
+          React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},wkPieLegend.map(function(it){return React.createElement("div",{key:it.name,style:{display:"flex",alignItems:"center",gap:4,fontSize:11}},React.createElement("div",{style:{width:10,height:10,borderRadius:2,background:it.color,flexShrink:0}}),React.createElement("span",null,it.name),React.createElement("span",{style:{fontWeight:700,color:it.color}},it.v+"po"));}))));
+      }
     }
   }
 
