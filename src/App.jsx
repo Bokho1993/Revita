@@ -46,7 +46,22 @@ var ADULT_HABITS = [
 ];
 
 var KIDS_CATS = { sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, move: { name: "Vận động", color: "#4ECB71", icon: "⚡" }, mind: { name: "Tinh thần", color: "#FFB347", icon: "✨" } };
-var ADULT_CATS = { food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, mind: { name: "Tinh thần", color: "#FFB347", icon: "🧘" }, move: { name: "Vận động", color: "#4ECB71", icon: "💪" }, learn: { name: "Học tập", color: "#3498DB", icon: "📚" } };
+var ADULT_CATS = { food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, mind: { name: "Tinh thần", color: "#FFB347", icon: "🧘" }, move: { name: "Vận động", color: "#4ECB71", icon: "💪" }, learn: { name: "Học tập", color: "#3498DB", icon: "📚" }, family: { name: "Gia đình", color: "#E91E63", icon: "👨‍👩‍👧‍👦" } };
+
+var MAICHI_HABITS = [
+  { id: "mc_plan_day", cat: "mind", label: "Lên kế hoạch ngày", emoji: "📋", xp: 4 },
+  { id: "mc_english", cat: "learn", label: "Học tiếng Anh", emoji: "🇬🇧", xp: 4 },
+  { id: "mc_yoga", cat: "move", label: "Tập Yoga 15 phút", emoji: "🧘", xp: 4 },
+  { id: "mc_piano", cat: "learn", label: "Tập piano 15 phút", emoji: "🎹", xp: 4 },
+  { id: "mc_connect_bong", cat: "family", label: "Kết nối 5p cùng Bông", emoji: "🌸", xp: 5 },
+  { id: "mc_connect_beo", cat: "family", label: "Kết nối 5p cùng Beo", emoji: "🐯", xp: 5 },
+  { id: "mc_journal", cat: "mind", label: "Viết nhật ký hoàn tất", emoji: "📔", xp: 4 },
+  { id: "mc_day_review", cat: "mind", label: "Tổng kết hiệu suất ngày", emoji: "📊", xp: 4 },
+  { id: "mc_meal", cat: "food", label: "Ăn uống đạt chuẩn", emoji: "🥗", xp: 5 },
+  { id: "mc_sleep", cat: "sleep", label: "Ngủ đạt chuẩn", emoji: "😴", xp: 5 },
+];
+
+var MAICHI_CATS = { food: { name: "Dinh dưỡng", color: "#FF6B6B", icon: "🍎" }, sleep: { name: "Giấc ngủ", color: "#6C63FF", icon: "🌙" }, move: { name: "Vận động", color: "#4ECB71", icon: "💪" }, learn: { name: "Học tập", color: "#3498DB", icon: "📚" }, mind: { name: "Tinh thần", color: "#E91E63", icon: "🌷" }, family: { name: "Gia đình", color: "#E91E63", icon: "👨‍👩‍👧‍👦" } };
 
 var LEVELS = [
   { name: "Mầm non", minXp: 0, icon: "🌱" }, { name: "Hạt giống", minXp: 100, icon: "🫘" },
@@ -125,6 +140,15 @@ var TIME_CATS = [
   { id: "other", name: "Khác", icon: "⚡", color: "#BDC3C7" },
 ];
 
+var MAICHI_TIME_CATS = [
+  { id: "career", name: "Phát triển sự nghiệp", icon: "💼", color: "#2C3E50" },
+  { id: "health", name: "Chăm sóc sức khỏe", icon: "💪", color: "#27AE60" },
+  { id: "learn", name: "Học tập phát triển", icon: "📚", color: "#3498DB" },
+  { id: "family", name: "Xây dựng gia đình", icon: "👨‍👩‍👧‍👦", color: "#E91E63" },
+  { id: "contribute", name: "Đóng góp cho người khác", icon: "🤝", color: "#9B59B6" },
+  { id: "friends", name: "Mở rộng bạn bè", icon: "🌸", color: "#F39C12" },
+];
+
 var GOALS = [
   { id: "g1", name: "Sức khỏe tuyệt vời", icon: "❤️", target: 100, unit: "%", step: 1, color: "#E74C3C", desc: "Chỉ số tốt hơn 10% so với mức chuẩn" },
   { id: "g2", name: "2,000km đạp xe", icon: "🚴", target: 2000, unit: "km", step: 1, color: "#27AE60", desc: "Hoàn thành chặng đua lũy kế cả năm" },
@@ -181,8 +205,8 @@ export default function App(){
   var save=useCallback(async function(pid,nd){await saveProfile(pid,nd);},[]);
   var pd=curP?(data[curP]||getDefault()):null;
   var isKid=curP?PROFILES[curP].isKid:false;
-  var habits=isKid?KIDS_HABITS:ADULT_HABITS;
-  var cats=isKid?KIDS_CATS:ADULT_CATS;
+  var habits=isKid?KIDS_HABITS:(curP==="maichi"?MAICHI_HABITS:ADULT_HABITS);
+  var cats=isKid?KIDS_CATS:(curP==="maichi"?MAICHI_CATS:ADULT_CATS);
 
   useEffect(function(){
     if(pd&&pd.history&&pd.history[TODAY])setChecked(pd.history[TODAY]);else setChecked({});
@@ -278,7 +302,8 @@ export default function App(){
 
   if(view==="time"&&!isKid){
     content.push(React.createElement("div",{key:"th",style:S.cd},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",{style:{fontWeight:700,fontSize:14}},"⏱️ Pomodoro"),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:pr.theme}},tPo+"po = "+(tPo*0.5).toFixed(1)+"h"))));
-    TIME_CATS.forEach(function(c){var v=timeE[c.id]||0;content.push(React.createElement("div",{key:"t"+c.id,style:Object.assign({},S.rw,{background:v>0?c.color+"10":"white",borderColor:v>0?c.color+"30":"#EEE"})},React.createElement("span",{style:{fontSize:18,width:28,textAlign:"center"}},c.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:v>0?c.color:"#333"}},c.name),v>0?React.createElement("div",{style:{fontSize:10,color:"#999"}},(v*0.5).toFixed(1)+"h"):null),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("button",{onClick:function(){updateTime(c.id,-1);},style:Object.assign({},S.pb,{opacity:v>0?1:0.3})},"−"),React.createElement("span",{style:{fontWeight:800,fontSize:16,color:c.color,minWidth:22,textAlign:"center"}},v),React.createElement("button",{onClick:function(){updateTime(c.id,1);},style:Object.assign({},S.pb,{background:c.color,color:"white"})},"+"))));});
+    var timeCatsForRender=isKid?KIDS_TIME_CATS:(curP==="maichi"?MAICHI_TIME_CATS:TIME_CATS);
+    timeCatsForRender.forEach(function(c){var v=timeE[c.id]||0;content.push(React.createElement("div",{key:"t"+c.id,style:Object.assign({},S.rw,{background:v>0?c.color+"10":"white",borderColor:v>0?c.color+"30":"#EEE"})},React.createElement("span",{style:{fontSize:18,width:28,textAlign:"center"}},c.icon),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontWeight:600,fontSize:13,color:v>0?c.color:"#333"}},c.name),v>0?React.createElement("div",{style:{fontSize:10,color:"#999"}},(v*0.5).toFixed(1)+"h"):null),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:5}},React.createElement("button",{onClick:function(){updateTime(c.id,-1);},style:Object.assign({},S.pb,{opacity:v>0?1:0.3})},"−"),React.createElement("span",{style:{fontWeight:800,fontSize:16,color:c.color,minWidth:22,textAlign:"center"}},v),React.createElement("button",{onClick:function(){updateTime(c.id,1);},style:Object.assign({},S.pb,{background:c.color,color:"white"})},"+"))));});
   }
 
   if(view==="time"&&isKid){
@@ -313,7 +338,7 @@ export default function App(){
     var li=LEVELS.indexOf(lv);
     content.push(React.createElement("div",{key:"lc",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontSize:44}},lv.icon),React.createElement("div",{style:{fontWeight:800,fontSize:20,color:pr.theme}},"Lv."+(li+1)+" "+lv.name),React.createElement("div",{style:{fontSize:13,color:"#666"}},pl.totalXp+" XP")));
     if(tPo>0){
-      var pieTimeCats=isKid?KIDS_TIME_CATS:TIME_CATS;
+      var pieTimeCats=isKid?KIDS_TIME_CATS:(curP==="maichi"?MAICHI_TIME_CATS:TIME_CATS);
       var pieStops=[];var cumPct=0;var pieLegend=[];
       pieTimeCats.forEach(function(c){var v=timeE[c.id]||0;if(v>0){var pct=(v/tPo)*100;pieStops.push(c.color+" "+cumPct+"% "+(cumPct+pct)+"%");pieLegend.push({name:c.name,icon:c.icon,color:c.color,v:v,pct:Math.round(pct)});cumPct+=pct;}});
       var grad="conic-gradient("+pieStops.join(",")+")";
@@ -365,7 +390,7 @@ export default function App(){
         React.createElement("div",{style:{fontSize:10,color:"#888",fontWeight:600}},wkLabel)),
       weekRows));
     {
-      var weekTimeCats=isKid?KIDS_TIME_CATS:TIME_CATS;var weekTimeBars=[];
+      var weekTimeCats=isKid?KIDS_TIME_CATS:(curP==="maichi"?MAICHI_TIME_CATS:TIME_CATS);var weekTimeBars=[];
       for(var wi=0;wi<7;wi++){var wd=new Date(Date.now()-(6-wi)*86400000),wk2=wd.toISOString().split("T")[0];
         var dayTime=(pl.timeLog&&pl.timeLog[wk2])?pl.timeLog[wk2]:{};var dayTotal=0;Object.values(dayTime).forEach(function(v){dayTotal+=v;});
         var daySegs=[];var segCum=0;
