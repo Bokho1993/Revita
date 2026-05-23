@@ -149,6 +149,25 @@ var MAICHI_TIME_CATS = [
   { id: "friends", name: "Mở rộng bạn bè", icon: "🌸", color: "#F39C12" },
 ];
 
+var FINANCE_EXPENSE_CATS = [
+  { id: "food", name: "Ăn uống", icon: "🍜", color: "#FF6B6B" },
+  { id: "living", name: "Sinh hoạt", icon: "🏠", color: "#3498DB" },
+  { id: "education", name: "Giáo dục", icon: "📚", color: "#F39C12" },
+  { id: "health", name: "Sức khỏe", icon: "💊", color: "#27AE60" },
+  { id: "transport", name: "Di chuyển", icon: "🚗", color: "#9B59B6" },
+  { id: "entertainment", name: "Giải trí", icon: "🎮", color: "#E67E22" },
+  { id: "shopping", name: "Mua sắm", icon: "🛒", color: "#1ABC9C" },
+  { id: "kids", name: "Con cái", icon: "👶", color: "#FF69B4" },
+  { id: "other_exp", name: "Khác", icon: "📦", color: "#95A5A6" },
+];
+
+var FINANCE_INCOME_CATS = [
+  { id: "salary", name: "Lương", icon: "💼", color: "#27AE60" },
+  { id: "investment", name: "Đầu tư", icon: "📈", color: "#3498DB" },
+  { id: "bonus", name: "Thưởng", icon: "🎁", color: "#F39C12" },
+  { id: "other_inc", name: "Thu nhập khác", icon: "💵", color: "#9B59B6" },
+];
+
 var GOALS = [
   { id: "g1", name: "Sức khỏe tuyệt vời", icon: "❤️", target: 100, unit: "%", step: 1, color: "#E74C3C", desc: "Chỉ số tốt hơn 10% so với mức chuẩn" },
   { id: "g2", name: "2,000km đạp xe", icon: "🚴", target: 2000, unit: "km", step: 1, color: "#27AE60", desc: "Hoàn thành chặng đua lũy kế cả năm" },
@@ -183,7 +202,8 @@ function getMonthId(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+
 function getLevel(xp){var l=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].minXp)l=LEVELS[i];}return l;}
 function getNextLevel(xp){for(var i=0;i<LEVELS.length;i++){if(xp<LEVELS[i].minXp)return LEVELS[i];}return null;}
 function getCurrentPhase(){var m=new Date().getMonth()+1;if(m<=4)return PHASES[0];if(m<=7)return PHASES[1];if(m<=10)return PHASES[2];return PHASES[3];}
-function getDefault(){return{totalXp:0,gems:10,streak:0,maxStreak:0,totalDays:0,perfectDays:0,sleepStreak:0,readStreak:0,sugarFreeStreak:0,exerciseStreak:0,stickers:0,lastDate:null,history:{},achievements:[],inventory:[],doubleXpToday:false,timeLog:{},freedomScore:{},goals:{},reviews:{}};}
+function formatVND(n){if(n>=1000000000)return(n/1000000000).toFixed(1)+"tỷ";if(n>=1000000)return(n/1000000).toFixed(1)+"tr";if(n>=1000)return Math.round(n/1000)+"k";return n+"";}
+function getDefault(){return{totalXp:0,gems:10,streak:0,maxStreak:0,totalDays:0,perfectDays:0,sleepStreak:0,readStreak:0,sugarFreeStreak:0,exerciseStreak:0,stickers:0,lastDate:null,history:{},achievements:[],inventory:[],doubleXpToday:false,timeLog:{},freedomScore:{},goals:{},reviews:{},financeLog:{}};}
 
 export default function App(){
   var _p=useState(null),curP=_p[0],setCurP=_p[1];
@@ -200,6 +220,10 @@ export default function App(){
   var _te=useState({}),timeE=_te[0],setTimeE=_te[1];
   var _rv=useState({}),revData=_rv[0],setRevData=_rv[1];
   var _rt=useState("week"),revType=_rt[0],setRevType=_rt[1];
+  var _ft=useState("expense"),finType=_ft[0],setFinType=_ft[1];
+  var _fam=useState(""),finAmt=_fam[0],setFinAmt=_fam[1];
+  var _fca=useState("food"),finCat=_fca[0],setFinCat=_fca[1];
+  var _fno=useState(""),finNote=_fno[0],setFinNote=_fno[1];
 
   useEffect(function(){async function load(){var pids=Object.keys(PROFILES);for(var i=0;i<pids.length;i++){var d=await loadProfile(pids[i]);if(d){var pid=pids[i];setData(function(prev){var n=Object.assign({},prev);n[pid]=d;return n;});}}setLoaded(true);}load();},[]);
   var save=useCallback(async function(pid,nd){await saveProfile(pid,nd);},[]);
@@ -263,6 +287,9 @@ export default function App(){
   var redeemT=useCallback(async function(t){if(!curP)return;var c=data[curP]||getDefault();if((c.stickers||0)<t.stickers)return;var up=Object.assign({},c,{stickers:c.stickers-t.stickers});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);setCelebMsg("🎁 "+t.icon+" "+t.name+"!");setShowCeleb(true);setTimeout(function(){setShowCeleb(false);},3000);},[curP,data,save]);
   var buyI=useCallback(async function(it){if(!curP)return;var c=data[curP]||getDefault();if(c.gems<it.cost)return;var inv=(c.inventory||[]).slice();inv.push(it.id);var up=Object.assign({},c,{gems:c.gems-it.cost,inventory:inv,doubleXpToday:it.id==="double_xp"?true:c.doubleXpToday});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,data,save]);
 
+  var addFinance=useCallback(async function(){if(!curP||!finAmt||parseFloat(finAmt)<=0)return;var cd=data[curP]||getDefault();var fl=Object.assign({},cd.financeLog||{});var entries=(fl[TODAY]||[]).slice();entries.push({id:Date.now().toString(),type:finType,cat:finCat,amount:parseFloat(finAmt),note:finNote});fl[TODAY]=entries;var up=Object.assign({},cd,{financeLog:fl});var nd=Object.assign({},data);nd[curP]=up;setData(nd);setFinAmt("");setFinNote("");await save(curP,up);},[curP,data,save,finType,finCat,finAmt,finNote]);
+  var deleteFinance=useCallback(async function(eid){if(!curP)return;var cd=data[curP]||getDefault();var fl=Object.assign({},cd.financeLog||{});var entries=(fl[TODAY]||[]).filter(function(e){return e.id!==eid;});fl[TODAY]=entries;var up=Object.assign({},cd,{financeLog:fl});var nd=Object.assign({},data);nd[curP]=up;setData(nd);await save(curP,up);},[curP,data,save]);
+
   if(!loaded)return React.createElement("div",{style:S.loading},React.createElement("style",null,CSS),React.createElement("div",{style:{fontSize:60,animation:"bounce 1s infinite"}},"🌟"),React.createElement("div",{style:{marginTop:16,fontSize:18,color:"#666"}},"Đang tải..."));
 
   if(!curP){
@@ -280,7 +307,8 @@ export default function App(){
   var tPo=0;Object.values(timeE).forEach(function(v){tPo+=v;});
 
   var kidTabs=[{id:"today",icon:"📋",l:"Hôm nay"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"stats",icon:"📊",l:"Thống kê"},{id:"achievements",icon:"🏅",l:"Huy chương"},{id:"treasure",icon:"🎁",l:"Thưởng"},{id:"shop",icon:"🏪",l:"Shop"}];
-  var adTabs=[{id:"today",icon:"📋",l:"Hành vi"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"goals",icon:"🎯",l:"Mục tiêu"},{id:"review",icon:"📝",l:"Review"},{id:"stats",icon:"📊",l:"Thống kê"}];
+  var adTabs=[{id:"today",icon:"📋",l:"Hành vi"},{id:"time",icon:"⏱️",l:"Thời gian"},{id:"finance",icon:"💰",l:"Tài chính"},{id:"goals",icon:"🎯",l:"Mục tiêu"},{id:"review",icon:"📝",l:"Review"},{id:"stats",icon:"📊",l:"Thống kê"}];
+  var dn=["CN","T2","T3","T4","T5","T6","T7"];
   var tabs=isKid?kidTabs:adTabs;var content=[];
 
   if(view==="today"){
@@ -334,6 +362,92 @@ export default function App(){
     content.push(React.createElement("div",{key:"rv-note",style:{textAlign:"center",fontSize:11,color:"#AAA",marginTop:8,padding:"0 20px"}},"Dữ liệu tự động lưu. Review tháng & quý: sử dụng tab Mục tiêu để cập nhật tiến độ 10 mục tiêu."));
   }
 
+  if(view==="finance"&&!isKid){
+    var finEntries=(pl.financeLog&&pl.financeLog[TODAY])||[];
+    var finTotalIncome=0,finTotalExpense=0;
+    finEntries.forEach(function(e){if(e.type==="income")finTotalIncome+=e.amount;else finTotalExpense+=e.amount;});
+    var finNet=finTotalIncome-finTotalExpense;
+    content.push(React.createElement("div",{key:"fin-sum",style:Object.assign({},S.cd,{background:"linear-gradient(135deg,#1a237e,#283593)",color:"white"})},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:12}},
+        React.createElement("div",{style:{fontSize:16,fontWeight:800}},"💰 Báo cáo tài chính"),
+        React.createElement("div",{style:{fontSize:11,color:"rgba(255,255,255,0.7)"}},TODAY)),
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-around"}},
+        React.createElement("div",{style:{textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Thu nhập"),
+          React.createElement("div",{style:{fontSize:16,fontWeight:800,color:"#4ECB71"}},"+"+formatVND(finTotalIncome))),
+        React.createElement("div",{style:{textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Chi tiêu"),
+          React.createElement("div",{style:{fontSize:16,fontWeight:800,color:"#FF6B6B"}},"-"+formatVND(finTotalExpense))),
+        React.createElement("div",{style:{textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Còn lại"),
+          React.createElement("div",{style:{fontSize:16,fontWeight:800,color:finNet>=0?"#FFD700":"#FF6B6B"}},(finNet>=0?"+":"")+formatVND(finNet))))));
+    var finCatsForType=finType==="income"?FINANCE_INCOME_CATS:FINANCE_EXPENSE_CATS;
+    content.push(React.createElement("div",{key:"fin-form",style:S.cd},
+      React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8}},
+        React.createElement("button",{onClick:function(){setFinType("expense");setFinCat("food");},style:{flex:1,padding:"7px",borderRadius:8,border:finType==="expense"?"2px solid #FF6B6B":"2px solid #EEE",background:finType==="expense"?"#FF6B6B10":"white",color:finType==="expense"?"#FF6B6B":"#999",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}},"💸 Chi tiêu"),
+        React.createElement("button",{onClick:function(){setFinType("income");setFinCat("salary");},style:{flex:1,padding:"7px",borderRadius:8,border:finType==="income"?"2px solid #4ECB71":"2px solid #EEE",background:finType==="income"?"#4ECB7110":"white",color:finType==="income"?"#4ECB71":"#999",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}},"💰 Thu nhập")),
+      React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}},
+        finCatsForType.map(function(c){return React.createElement("button",{key:c.id,onClick:function(){setFinCat(c.id);},style:{padding:"4px 8px",borderRadius:8,border:finCat===c.id?"2px solid "+c.color:"2px solid #EEE",background:finCat===c.id?c.color+"15":"white",fontSize:11,cursor:"pointer",fontWeight:finCat===c.id?700:400,color:finCat===c.id?c.color:"#666",fontFamily:"inherit"}},c.icon+" "+c.name);})),
+      React.createElement("div",{style:{display:"flex",gap:6,marginBottom:6}},
+        React.createElement("input",{type:"number",value:finAmt,onChange:function(e){setFinAmt(e.target.value);},placeholder:"Số tiền (VNĐ)",style:{flex:1,padding:"8px 12px",borderRadius:8,border:"2px solid #EEE",fontSize:14,fontWeight:700,outline:"none",fontFamily:"inherit"}}),
+        React.createElement("input",{type:"text",value:finNote,onChange:function(e){setFinNote(e.target.value);},placeholder:"Ghi chú...",style:{flex:1,padding:"8px 12px",borderRadius:8,border:"2px solid #EEE",fontSize:13,outline:"none",fontFamily:"inherit"}})),
+      React.createElement("button",{onClick:function(){addFinance();},style:{width:"100%",padding:"9px",borderRadius:8,border:"none",background:finType==="income"?"#4ECB71":"#FF6B6B",color:"white",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}},"+ Thêm "+(finType==="income"?"thu nhập":"chi tiêu"))));
+    if(finTotalExpense>0){
+      var expByCategory={};
+      finEntries.filter(function(e){return e.type==="expense";}).forEach(function(e){expByCategory[e.cat]=(expByCategory[e.cat]||0)+e.amount;});
+      var expPieStops=[];var expCumPct=0;var expLegend=[];
+      FINANCE_EXPENSE_CATS.forEach(function(c){var v=expByCategory[c.id]||0;if(v>0){var pct=(v/finTotalExpense)*100;expPieStops.push(c.color+" "+expCumPct+"% "+(expCumPct+pct)+"%");expLegend.push({name:c.name,icon:c.icon,color:c.color,amount:v,pct:Math.round(pct)});expCumPct+=pct;}});
+      var expGrad="conic-gradient("+expPieStops.join(",")+")";
+      content.push(React.createElement("div",{key:"fin-pie",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"📊 Phân bổ chi tiêu"),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",marginBottom:12}},
+          React.createElement("div",{style:{width:150,height:150,borderRadius:"50%",background:expGrad,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},
+            React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:90,height:90,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}},
+              React.createElement("div",{style:{fontSize:16,fontWeight:800,color:"#FF6B6B"}},formatVND(finTotalExpense)),
+              React.createElement("div",{style:{fontSize:10,color:"#888"}},"Chi tiêu")))),
+        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}},
+          expLegend.map(function(it){return React.createElement("div",{key:it.name,style:{display:"flex",alignItems:"center",gap:4,fontSize:11,background:it.color+"15",padding:"3px 8px",borderRadius:8}},
+            React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:it.color,display:"inline-block",flexShrink:0}}),
+            React.createElement("span",null,it.icon+" "+it.name),
+            React.createElement("span",{style:{fontWeight:700,color:it.color}},formatVND(it.amount)+" ("+it.pct+"%)"));}))));
+    }
+    if(finEntries.length>0){
+      content.push(React.createElement("div",{key:"fin-list",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📋 Chi tiết hôm nay"),
+        finEntries.slice().reverse().map(function(e){
+          var catList=e.type==="income"?FINANCE_INCOME_CATS:FINANCE_EXPENSE_CATS;
+          var cat=catList.find(function(c){return c.id===e.cat;})||{icon:"📦",name:"Khác",color:"#999"};
+          return React.createElement("div",{key:e.id,style:{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid #F5F5F5"}},
+            React.createElement("span",{style:{fontSize:20}},cat.icon),
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontWeight:600,fontSize:12,color:"#333"}},cat.name),
+              e.note?React.createElement("div",{style:{fontSize:10,color:"#999"}},e.note):null),
+            React.createElement("div",{style:{fontWeight:800,fontSize:13,color:e.type==="income"?"#4ECB71":"#FF6B6B"}},(e.type==="income"?"+":"-")+formatVND(e.amount)),
+            React.createElement("button",{onClick:function(){deleteFinance(e.id);},style:{width:22,height:22,borderRadius:6,border:"1px solid #EEE",background:"white",color:"#CCC",fontSize:11,cursor:"pointer",fontFamily:"inherit"}},"✕"));})));
+    }
+    var finWeekData=[];var finWeekMaxVal=0;
+    for(var fi=0;fi<7;fi++){var fd=new Date(Date.now()-(6-fi)*86400000);var fk=fd.toISOString().split("T")[0];var fe=(pl.financeLog&&pl.financeLog[fk])||[];var fInc=0,fExp=0;fe.forEach(function(e){if(e.type==="income")fInc+=e.amount;else fExp+=e.amount;});finWeekMaxVal=Math.max(finWeekMaxVal,fInc,fExp);finWeekData.push({day:dn[fd.getDay()],income:fInc,expense:fExp});}
+    if(finWeekMaxVal>0){
+      var weekTotalInc=0,weekTotalExp=0;finWeekData.forEach(function(d){weekTotalInc+=d.income;weekTotalExp+=d.expense;});
+      content.push(React.createElement("div",{key:"fin-week",style:S.cd},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+          React.createElement("div",{style:{fontWeight:700,fontSize:13}},"📆 7 ngày qua"),
+          React.createElement("div",{style:{fontSize:11,color:"#888"}},"Thu: "+formatVND(weekTotalInc)+" | Chi: "+formatVND(weekTotalExp))),
+        React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between",alignItems:"flex-end",height:90,marginBottom:8}},
+          finWeekData.map(function(d,i){
+            var incH=finWeekMaxVal>0?Math.max((d.income/finWeekMaxVal)*70,d.income>0?3:0):0;
+            var expH=finWeekMaxVal>0?Math.max((d.expense/finWeekMaxVal)*70,d.expense>0?3:0):0;
+            return React.createElement("div",{key:i,style:{flex:1,textAlign:"center"}},
+              React.createElement("div",{style:{display:"flex",gap:1,justifyContent:"center",alignItems:"flex-end",height:70}},
+                React.createElement("div",{style:{width:8,height:incH,borderRadius:3,background:"#4ECB71",transition:"height 0.3s"}}),
+                React.createElement("div",{style:{width:8,height:expH,borderRadius:3,background:"#FF6B6B",transition:"height 0.3s"}})),
+              React.createElement("div",{style:{fontSize:9,color:"#888",marginTop:3}},d.day));})),
+        React.createElement("div",{style:{display:"flex",gap:12,justifyContent:"center"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4,fontSize:11}},React.createElement("div",{style:{width:8,height:8,borderRadius:2,background:"#4ECB71"}}),React.createElement("span",null,"Thu nhập")),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4,fontSize:11}},React.createElement("div",{style:{width:8,height:8,borderRadius:2,background:"#FF6B6B"}}),React.createElement("span",null,"Chi tiêu")))));
+    }
+  }
+
   if(view==="stats"){
     var li=LEVELS.indexOf(lv);
     content.push(React.createElement("div",{key:"lc",style:Object.assign({},S.cd,{textAlign:"center"})},React.createElement("div",{style:{fontSize:44}},lv.icon),React.createElement("div",{style:{fontWeight:800,fontSize:20,color:pr.theme}},"Lv."+(li+1)+" "+lv.name),React.createElement("div",{style:{fontSize:13,color:"#666"}},pl.totalXp+" XP")));
@@ -353,7 +467,7 @@ export default function App(){
     }
     var si=[{icon:"🔥",l:"Streak",v:pl.streak,c:"#FF6B00"},{icon:"🏆",l:"Max",v:pl.maxStreak||0,c:"#FFD700"},{icon:"📅",l:"Ngày đạt",v:pl.totalDays,c:"#4ECB71"},{icon:"💯",l:"Hoàn hảo",v:pl.perfectDays,c:"#FF69B4"},{icon:"💎",l:"Gems",v:pl.gems,c:"#6C63FF"},{icon:"🏅",l:"Huy chương",v:(pl.achievements||[]).length,c:"#FF8C00"}];
     content.push(React.createElement("div",{key:"sg",style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},si.map(function(s,i){return React.createElement("div",{key:i,style:S.st},React.createElement("span",{style:{fontSize:22}},s.icon),React.createElement("div",{style:{fontSize:24,fontWeight:800,color:s.c}},s.v),React.createElement("div",{style:{fontSize:10,color:"#888"}},s.l));})));
-    var db=[];var dn=["CN","T2","T3","T4","T5","T6","T7"];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
+    var db=[];for(var di=0;di<7;di++){var d=new Date(Date.now()-(6-di)*86400000),k=d.toISOString().split("T")[0],dd=(pl.history&&pl.history[k])?pl.history[k]:{},dx=0;habits.forEach(function(h){if(dd[h.id])dx+=h.xp;});var p=Math.min(100,(dx/st)*100);db.push(React.createElement("div",{key:di,style:{flex:1,textAlign:"center"}},React.createElement("div",{style:{fontSize:9,color:"#888",marginBottom:3}},dn[d.getDay()]),React.createElement("div",{style:{height:44,borderRadius:5,background:"#F0F0F0",position:"relative",overflow:"hidden"}},React.createElement("div",{style:{position:"absolute",bottom:0,width:"100%",height:p+"%",background:p>=100?pr.theme:pr.theme+"60",borderRadius:5}})),React.createElement("div",{style:{fontSize:9,fontWeight:700,color:p>=100?pr.theme:"#999",marginTop:2}},dx)));}
     content.push(React.createElement("div",{key:"7d",style:S.cd},React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📆 7 ngày"),React.createElement("div",{style:{display:"flex",gap:3,justifyContent:"space-between"}},db)));
     var wkToday=new Date();var wkDay=wkToday.getDay();var mondayOffset=wkDay===0?6:wkDay-1;var wkMonday=new Date(wkToday);wkMonday.setDate(wkToday.getDate()-mondayOffset);
     var weekDays=[];for(var wd2=0;wd2<7;wd2++){var wdd=new Date(wkMonday);wdd.setDate(wkMonday.getDate()+wd2);weekDays.push(wdd.toISOString().split("T")[0]);}
