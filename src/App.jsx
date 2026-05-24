@@ -446,6 +446,67 @@ export default function App(){
           React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4,fontSize:11}},React.createElement("div",{style:{width:8,height:8,borderRadius:2,background:"#4ECB71"}}),React.createElement("span",null,"Thu nhập")),
           React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4,fontSize:11}},React.createElement("div",{style:{width:8,height:8,borderRadius:2,background:"#FF6B6B"}}),React.createElement("span",null,"Chi tiêu")))));
     }
+    var mNow2=new Date();var mYear2=mNow2.getFullYear();var mMonth2=mNow2.getMonth();var daysInMonth2=new Date(mYear2,mMonth2+1,0).getDate();
+    var monthTotalInc2=0,monthTotalExp2=0,monthCatExp2={},monthDaysList2=[];
+    var monthNames2=["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+    for(var mi2=1;mi2<=daysInMonth2;mi2++){var md2=new Date(mYear2,mMonth2,mi2);if(md2>mNow2)break;var mk2=md2.toISOString().split("T")[0];var me2=(pl.financeLog&&pl.financeLog[mk2])||[];var dayInc2=0,dayExp2=0;me2.forEach(function(e){if(e.type==="income"){dayInc2+=e.amount;monthTotalInc2+=e.amount;}else{dayExp2+=e.amount;monthTotalExp2+=e.amount;monthCatExp2[e.cat]=(monthCatExp2[e.cat]||0)+e.amount;}});if(me2.length>0)monthDaysList2.push({date:mk2,day:mi2,dayName:dn[md2.getDay()],income:dayInc2,expense:dayExp2,count:me2.length});}
+    var monthNet2=monthTotalInc2-monthTotalExp2;var monthDaysPassed2=mNow2.getDate();var monthAvgExp2=monthDaysPassed2>0?monthTotalExp2/monthDaysPassed2:0;var monthEstExp2=monthAvgExp2*daysInMonth2;
+    content.push(React.createElement("div",{key:"fin-month-sum",style:Object.assign({},S.cd,{background:"linear-gradient(135deg,#0d47a1,#1565c0)",color:"white"})},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:12}},
+        React.createElement("div",{style:{fontSize:16,fontWeight:800}},"📊 Báo cáo "+monthNames2[mMonth2]+" "+mYear2),
+        React.createElement("div",{style:{fontSize:11,color:"rgba(255,255,255,0.7)"}},"Ngày 1 → "+monthDaysPassed2+"/"+daysInMonth2)),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+        React.createElement("div",{style:{background:"rgba(255,255,255,0.1)",borderRadius:10,padding:10,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Tổng thu"),
+          React.createElement("div",{style:{fontSize:18,fontWeight:800,color:"#4ECB71"}},"+"+formatVND(monthTotalInc2))),
+        React.createElement("div",{style:{background:"rgba(255,255,255,0.1)",borderRadius:10,padding:10,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Tổng chi"),
+          React.createElement("div",{style:{fontSize:18,fontWeight:800,color:"#FF6B6B"}},"-"+formatVND(monthTotalExp2))),
+        React.createElement("div",{style:{background:"rgba(255,255,255,0.1)",borderRadius:10,padding:10,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"Còn lại"),
+          React.createElement("div",{style:{fontSize:18,fontWeight:800,color:monthNet2>=0?"#FFD700":"#FF6B6B"}},(monthNet2>=0?"+":"")+formatVND(monthNet2))),
+        React.createElement("div",{style:{background:"rgba(255,255,255,0.1)",borderRadius:10,padding:10,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:10,color:"rgba(255,255,255,0.7)"}},"TB chi/ngày"),
+          React.createElement("div",{style:{fontSize:18,fontWeight:800,color:"#FFB347"}},formatVND(Math.round(monthAvgExp2))))),
+      React.createElement("div",{style:{textAlign:"center",marginTop:10,fontSize:11,color:"rgba(255,255,255,0.7)"}},"Dự kiến chi cả tháng: ~"+formatVND(Math.round(monthEstExp2)))));
+    if(monthTotalExp2>0){
+      var mExpSorted2=FINANCE_EXPENSE_CATS.filter(function(c){return monthCatExp2[c.id]>0;}).sort(function(a,b){return(monthCatExp2[b.id]||0)-(monthCatExp2[a.id]||0);});
+      var mExpMax2=mExpSorted2.length>0?(monthCatExp2[mExpSorted2[0].id]||1):1;
+      var mPieStops2=[];var mCumPct2=0;
+      mExpSorted2.forEach(function(c){var v=monthCatExp2[c.id];var pct=(v/monthTotalExp2)*100;mPieStops2.push(c.color+" "+mCumPct2+"% "+(mCumPct2+pct)+"%");mCumPct2+=pct;});
+      var mGrad2="conic-gradient("+mPieStops2.join(",")+")";
+      content.push(React.createElement("div",{key:"fin-month-cat",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:10}},"📊 Chi tiêu theo danh mục (tháng)"),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",marginBottom:12}},
+          React.createElement("div",{style:{width:140,height:140,borderRadius:"50%",background:mGrad2,position:"relative",boxShadow:"0 2px 12px rgba(0,0,0,0.1)"}},
+            React.createElement("div",{style:{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:85,height:85,borderRadius:"50%",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}},
+              React.createElement("div",{style:{fontSize:14,fontWeight:800,color:"#FF6B6B"}},formatVND(monthTotalExp2)),
+              React.createElement("div",{style:{fontSize:10,color:"#888"}},"Tổng chi")))),
+        mExpSorted2.map(function(c){var v=monthCatExp2[c.id];var pct=Math.round((v/monthTotalExp2)*100);var bw=Math.round((v/mExpMax2)*100);
+          return React.createElement("div",{key:"mc_"+c.id,style:{display:"flex",alignItems:"center",gap:6,marginBottom:6}},
+            React.createElement("span",{style:{fontSize:16,width:22,textAlign:"center",flexShrink:0}},c.icon),
+            React.createElement("div",{style:{flex:1,minWidth:0}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}},
+                React.createElement("span",{style:{fontSize:11,fontWeight:600,color:"#333"}},c.name),
+                React.createElement("span",{style:{fontSize:11,fontWeight:700,color:c.color}},formatVND(v)+" ("+pct+"%)")),
+              React.createElement("div",{style:{height:6,borderRadius:3,background:"#EEE",overflow:"hidden"}},
+                React.createElement("div",{style:{height:6,borderRadius:3,width:bw+"%",background:c.color,transition:"width 0.4s"}}))));})));
+    }
+    if(monthDaysList2.length>0){
+      content.push(React.createElement("div",{key:"fin-month-days",style:S.cd},
+        React.createElement("div",{style:{fontWeight:700,fontSize:13,marginBottom:8}},"📋 Chi tiết từng ngày trong tháng"),
+        monthDaysList2.slice().reverse().map(function(d){var dNet=d.income-d.expense;var isToday=d.date===TODAY;
+          return React.createElement("div",{key:"md_"+d.date,style:{display:"flex",alignItems:"center",gap:8,padding:isToday?"8px 6px":"8px 0",borderBottom:"1px solid #F5F5F5",background:isToday?"#FFF8E1":"transparent",borderRadius:isToday?8:0}},
+            React.createElement("div",{style:{textAlign:"center",minWidth:36}},
+              React.createElement("div",{style:{fontSize:16,fontWeight:800,color:isToday?pr.theme:"#333"}},d.day),
+              React.createElement("div",{style:{fontSize:9,color:"#888"}},d.dayName)),
+            React.createElement("div",{style:{flex:1,display:"flex",gap:8}},
+              d.income>0?React.createElement("span",{style:{fontSize:11,color:"#4ECB71",fontWeight:600}},"+"+formatVND(d.income)):null,
+              d.expense>0?React.createElement("span",{style:{fontSize:11,color:"#FF6B6B",fontWeight:600}},"-"+formatVND(d.expense)):null),
+            React.createElement("div",{style:{textAlign:"right"}},
+              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:dNet>=0?"#4ECB71":"#FF6B6B"}},(dNet>=0?"+":"")+formatVND(dNet)),
+              React.createElement("div",{style:{fontSize:9,color:"#999"}},d.count+" mục")));})));
+    }
   }
 
   if(view==="stats"){
