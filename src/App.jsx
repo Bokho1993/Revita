@@ -119,6 +119,7 @@ var TREASURES = [
   { id: "toy_300k", name: "Đồ chơi dưới 300K", icon: "🏆", stickers: 120 },
   { id: "free_comic", name: "Đọc truyện tự do", icon: "📚", stickers: 15 },
   { id: "free_screen", name: "Sử dụng thiết bị tự do", icon: "🖥️", stickers: 30 },
+  { id: "star_incorrect", name: "Tích sao chưa chính xác", icon: "⚠️", stickers: 10 },
 ];
 
 var KIDS_TIME_CATS = [
